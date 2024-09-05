@@ -1,0 +1,1 @@
+export type Membership = "free" | "pro" | "enterprise";
