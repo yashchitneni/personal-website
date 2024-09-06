@@ -6,12 +6,23 @@ import {
 import { headers } from "next/headers"
 import Stripe from "stripe"
 
+/**
+ * Set of relevant Stripe events to handle.
+ * @type {Set<string>}
+ */
 const relevantEvents = new Set([
   "checkout.session.completed",
   "customer.subscription.updated",
   "customer.subscription.deleted"
 ])
 
+/**
+ * Handles POST requests for Stripe webhooks.
+ * @async
+ * @function POST
+ * @param {Request} req - The incoming request object.
+ * @returns {Promise<Response>} The response object.
+ */
 export async function POST(req: Request) {
   const body = await req.text()
   const sig = headers().get("Stripe-Signature") as string

@@ -2,10 +2,20 @@
 
 import { useState } from 'react'
 
+/**
+ * Login form component.
+ * @function LoginForm
+ * @returns {JSX.Element} The rendered login form.
+ */
 export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
+  /**
+   * Handles form submission.
+   * @function handleSubmit
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Handle login logic here

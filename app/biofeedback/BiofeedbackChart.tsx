@@ -11,18 +11,31 @@ const supabase = createClient(
 )
 
 interface BiofeedbackEntry {
-  date: string
-  hunger_score: number
-  digestion_score: number
-  sleep_quality_score: number
-  energy_levels_score: number
-  gym_performance_score: number | null
+  date: string;
+  hunger_score: number;
+  digestion_score: number;
+  sleep_quality_score: number;
+  energy_levels_score: number;
+  gym_performance_score: number | null;
 }
 
+/**
+ * Component for rendering a biofeedback chart.
+ * @function BiofeedbackChart
+ * @returns {JSX.Element} The rendered biofeedback chart.
+ * @description This component fetches and displays biofeedback data in a line chart format.
+ */
 export default function BiofeedbackChart() {
   const [data, setData] = useState<BiofeedbackEntry[]>([])
 
   useEffect(() => {
+    /**
+     * Fetches biofeedback data from Supabase.
+     * @async
+     * @function fetchData
+     * @returns {Promise<void>} A promise that resolves when the data is fetched.
+     * @throws {Error} Throws an error if the data fetching fails.
+     */
     const fetchData = async () => {
       const { data, error } = await supabase
         .from('biofeedback')

@@ -1,5 +1,10 @@
 import BiofeedbackChart from './BiofeedbackChart'
 
+/**
+ * Biofeedback page component.
+ * @function BiofeedbackPage
+ * @returns {JSX.Element} The rendered biofeedback page.
+ */
 export default function BiofeedbackPage() {
   return (
     <div className="container mx-auto p-4">

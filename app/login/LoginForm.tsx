@@ -5,12 +5,26 @@ import { useSignIn } from '@clerk/nextjs'
 import { Button } from '@/app/components/ui/button'
 import { Input } from '@/app/components/ui/input'
 
+/**
+ * Login form component using Clerk for authentication.
+ * @function LoginForm
+ * @returns {JSX.Element} The rendered login form.
+ * @description This component provides a form for users to log in using their email and password.
+ */
 export default function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
   const { signIn, setActive } = useSignIn()
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  /**
+   * Handles form submission and sign-in process.
+   * @async
+   * @function handleSubmit
+   * @param {FormEvent<HTMLFormElement>} e - The form submission event.
+   * @throws {Error} Throws an error if sign-in fails.
+   * @returns {Promise<void>} A promise that resolves when the sign-in process is complete.
+   */
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     if (!signIn) return
 
@@ -29,7 +43,15 @@ export default function LoginForm() {
     }
   }
 
-  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>) => 
+  /**
+   * Creates an input change handler for the given state setter.
+   * @function handleInputChange
+   * @param {React.Dispatch<React.SetStateAction<string>>} setter - The state setter function.
+   * @returns {(e: ChangeEvent<HTMLInputElement>) => void} The input change handler.
+   * @description This function returns a change event handler that updates the state with the input value.
+   */
+  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>): 
+    (e: ChangeEvent<HTMLInputElement>) => void => 
     (e: ChangeEvent<HTMLInputElement>) => setter(e.target.value)
 
   return (

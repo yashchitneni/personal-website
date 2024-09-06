@@ -5,8 +5,6 @@ import { Button } from '@/app/components/ui/button'
 import { createClient } from '@supabase/supabase-js'
 import { useAuth } from '@clerk/nextjs'
 
-// Remove the Supabase client initialization from here
-
 interface BiofeedbackData {
   date: string;
   time: string;
@@ -21,12 +19,48 @@ interface BiofeedbackData {
   summary: string;
 }
 
+/**
+ * Represents the structure of biofeedback data.
+ * @typedef {Object} BiofeedbackData
+ * @property {string} date - The date of the biofeedback entry.
+ * @property {string} time - The time of the biofeedback entry.
+ * @property {Object} metrics - The biofeedback metrics.
+ * @property {Object} metrics.hunger_levels - Hunger level metrics.
+ * @property {number} metrics.hunger_levels.score - Hunger level score.
+ * @property {string} metrics.hunger_levels.notes - Hunger level notes.
+ * @property {Object} metrics.digestion - Digestion metrics.
+ * @property {number} metrics.digestion.score - Digestion score.
+ * @property {string} metrics.digestion.notes - Digestion notes.
+ * @property {Object} metrics.sleep_quality - Sleep quality metrics.
+ * @property {number} metrics.sleep_quality.score - Sleep quality score.
+ * @property {string} metrics.sleep_quality.notes - Sleep quality notes.
+ * @property {Object} metrics.energy_levels - Energy level metrics.
+ * @property {number} metrics.energy_levels.score - Energy level score.
+ * @property {string} metrics.energy_levels.notes - Energy level notes.
+ * @property {Object} metrics.gym_performance - Gym performance metrics.
+ * @property {number} metrics.gym_performance.score - Gym performance score.
+ * @property {string} metrics.gym_performance.notes - Gym performance notes.
+ * @property {string} additional_notes - Additional notes for the entry.
+ * @property {string} summary - Summary of the biofeedback entry.
+ */
+
+/**
+ * Form component for uploading JSON biofeedback data.
+ * @function JsonUploadForm
+ * @returns {JSX.Element} The rendered JSON upload form.
+ */
 export default function JsonUploadForm() {
   const { getToken } = useAuth()
   const [jsonData, setJsonData] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  /**
+   * Handles form submission and data upload.
+   * @async
+   * @function handleSubmit
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)

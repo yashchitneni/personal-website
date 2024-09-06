@@ -6,6 +6,13 @@ import { Membership } from "../types/membership"
 import Stripe from "stripe"
 import { stripe } from "../lib/stripe"
 
+/**
+ * Determines the membership status based on the Stripe subscription status.
+ * @function getMembershipStatus
+ * @param {Stripe.Subscription.Status} status - The Stripe subscription status.
+ * @param {Membership} membership - The current membership type.
+ * @returns {Membership} The determined membership status.
+ */
 const getMembershipStatus = (
   status: Stripe.Subscription.Status,
   membership: Membership
@@ -26,6 +33,15 @@ const getMembershipStatus = (
   }
 }
 
+/**
+ * Updates the Stripe customer information in the database.
+ * @async
+ * @function updateStripeCustomer
+ * @param {string} profileId - The profile ID.
+ * @param {string} subscriptionId - The Stripe subscription ID.
+ * @param {string} customerId - The Stripe customer ID.
+ * @throws {Error} If the customer update fails.
+ */
 export const updateStripeCustomer = async (
   profileId: string,
   subscriptionId: string,
@@ -45,6 +61,14 @@ export const updateStripeCustomer = async (
   }
 }
 
+/**
+ * Manages subscription status changes and updates the database accordingly.
+ * @async
+ * @function manageSubscriptionStatusChange
+ * @param {string} subscriptionId - The Stripe subscription ID.
+ * @param {string} customerId - The Stripe customer ID.
+ * @param {string} productId - The Stripe product ID.
+ */
 export const manageSubscriptionStatusChange = async (
   subscriptionId: string,
   customerId: string,

@@ -1,3 +1,8 @@
+/**
+ * Renders the dashboard page.
+ * @function DashboardPage
+ * @returns {JSX.Element} The rendered dashboard page component.
+ */
 export default function DashboardPage() {
   return (
     <div className="container mx-auto p-4">
