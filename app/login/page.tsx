@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import LoginForm from './LoginForm'
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 
 export default async function LoginPage() {
   const { userId } = auth();

@@ -3,27 +3,22 @@
 import { useState } from 'react'
 import { Button } from '@/app/components/ui/button'
 import { createClient } from '@supabase/supabase-js'
-import { Input } from '@/app/components/ui/input'
 import { useAuth } from '@clerk/nextjs'
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// Remove the Supabase client initialization from here
 
 interface BiofeedbackData {
-  date: string
-  time: string
+  date: string;
+  time: string;
   metrics: {
-    hunger_levels: { score: number; notes: string }
-    digestion: { score: number; notes: string }
-    sleep_quality: { score: number; notes: string }
-    energy_levels: { score: number; notes: string }
-    gym_performance: { score: number | null; notes: string }
-  }
-  additional_notes: string[]
-  summary: string
+    hunger_levels: { score: number; notes: string };
+    digestion: { score: number; notes: string };
+    sleep_quality: { score: number; notes: string };
+    energy_levels: { score: number; notes: string };
+    gym_performance: { score: number; notes: string };
+  };
+  additional_notes: string;
+  summary: string;
 }
 
 export default function JsonUploadForm() {
@@ -41,7 +36,14 @@ export default function JsonUploadForm() {
       const token = await getToken({ template: 'supabase' })
       if (!token) throw new Error('Not authenticated')
 
-      supabase.auth.setAuth(token)
+      // Initialize Supabase client here
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: { headers: { Authorization: `Bearer ${token}` } },
+        }
+      )
 
       const data: BiofeedbackData = JSON.parse(jsonData)
       
