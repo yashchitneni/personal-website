@@ -1,14 +1,14 @@
-import { ClerkProvider } from '@clerk/nextjs';
-import './globals.css';
-import type { Metadata } from 'next';
+import { NavBar } from './components/NavBar'
+import './globals.css'
+import type { Metadata } from 'next'
 
 /**
  * Metadata for the application.
  * @type {Metadata}
  */
 export const metadata: Metadata = {
-  title: 'Your App Name',
-  description: 'Your app description',
+  title: 'Your Site Name',
+  description: 'Your site description',
 };
 
 /**
@@ -24,10 +24,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body>{children}</body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body>
+        <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-500 to-indigo-600">
+          <NavBar />
+          <main className="flex-grow">
+            {children}
+          </main>
+        </div>
+      </body>
+    </html>
   );
 }
