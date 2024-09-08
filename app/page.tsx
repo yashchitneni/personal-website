@@ -1,41 +1,50 @@
-import Image from 'next/image'
-import { AnimatedTitle } from './components/AnimatedTitle'
-import { AnimatedInterest } from './components/AnimatedInterest'
+'use client'
 
-const interests = [
-  { name: 'Health', image: '/images/health.jpg', link: '/health' },
-  { name: 'Coding', image: '/images/coding.jpg', link: '/coding' },
-  { name: 'DJing', image: '/images/djing.jpg', link: '/music' },
-  // Add more interests as needed
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+
+const roles = [
+  "startup founder",
+  "programmer",
+  "designer",
+  "copywriter",
+  "product manager",
+  // ... add more roles as needed
 ]
 
 export default function Home() {
+  const [roleIndex, setRoleIndex] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRoleIndex((prevIndex) => (prevIndex + 1) % roles.length)
+    }, 3000) // Change role every 3 seconds
+
+    return () => clearInterval(interval)
+  }, [])
+
   return (
-    <div className="flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-6xl flex flex-col items-center">
-        <AnimatedTitle>Welcome to My World</AnimatedTitle>
-        
-        <div className="flex flex-col md:flex-row items-center justify-center w-full gap-8 mb-8">
-          <div className="relative w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden shrink-0">
-            <Image
-              src="/images/profile.jpg"
-              alt="Profile Picture"
-              layout="fill"
-              objectFit="cover"
-              priority
-            />
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 flex-grow">
-            {interests.map((interest, index) => (
-              <AnimatedInterest
-                key={interest.name}
-                name={interest.name}
-                image={interest.image}
-                link={interest.link}
-                index={index}
-              />
-            ))}
+    <div className="flex min-h-screen flex-col items-center justify-center p-24">
+      <div className="text-center">
+        <h1 className="text-6xl font-bold mb-4">
+          Hey, I'm <span className="text-blue-600">Yash</span>
+        </h1>
+        <div className="flex items-center justify-center text-2xl mt-4">
+          <span className="mr-2">I am a</span>
+          <div className="relative">
+            <div className="absolute -inset-1 bg-orange-300 rounded-lg transform rotate-2"></div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={roleIndex}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+                className="relative bg-white px-4 py-2 rounded-lg shadow-sm transform -rotate-2"
+              >
+                {roles[roleIndex]}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>

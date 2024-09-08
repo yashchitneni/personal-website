@@ -3,9 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 17, 24, 39;
-  --background-end-rgb: 31, 41, 55;
+  --primary-color: #f97316; /* Tailwind orange-500 */
 }
 
 body {
@@ -15,4 +13,5 @@ body {
     rgb(var(--background-start-rgb)),
     rgb(var(--background-end-rgb))
   );
+  font-family: 'Inter', sans-serif;
 }

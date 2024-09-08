@@ -2,6 +2,9 @@ import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { NavBar } from "./components/NavBar";
 import "./globals.css";
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'] });
 
 /**
  * Metadata for the application.
@@ -23,11 +26,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <ClerkProvider>
-        <body>
-          <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-500 to-indigo-600">
-            <NavBar />
-            <main className="flex-grow">{children}</main>
-          </div>
+        <body className={inter.className}>
+          <NavBar />
+          <main className="flex-grow">{children}</main>
         </body>
       </ClerkProvider>
     </html>
