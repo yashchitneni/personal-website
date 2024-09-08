@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/app/components/ui/button'
-import { createClient } from '@supabase/supabase-js'
-import { useAuth, useUser } from '@clerk/nextjs/'
+import { Button } from "@/app/components/ui/button";
+import { useAuth, useUser } from "@clerk/nextjs";
+import { createClient } from "@supabase/supabase-js";
+import { useState } from "react";
 
 interface BiofeedbackData {
   date: string;
@@ -28,11 +28,11 @@ interface BiofeedbackData {
  * @returns {JSX.Element} The rendered JSON upload form.
  */
 export default function JsonUploadForm() {
-  const { userId } = useAuth()
-  const { user } = useUser()
-  const [jsonData, setJsonData] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { userId, getToken } = useAuth();
+  const { user } = useUser();
+  const [jsonData, setJsonData] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   /**
    * Handles form submission and data upload.
@@ -41,26 +41,21 @@ export default function JsonUploadForm() {
    * @param {React.FormEvent} e - The form submission event.
    */
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const { getToken } = useAuth()
-      const token = await getToken({ template: 'supabase' })
-      if (!token) throw new Error('Not authenticated')
+      const token = await getToken({ template: "supabase" });
+      if (!token) throw new Error("Not authenticated");
 
       // Initialize Supabase client here
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          global: { headers: { Authorization: `Bearer ${token}` } },
-        }
-      )
+      const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+        global: { headers: { Authorization: `Bearer ${token}` } }
+      });
 
-      const data: BiofeedbackData = JSON.parse(jsonData)
-      const { error: insertError } = await supabase.from('biofeedback').insert({
+      const data: BiofeedbackData = JSON.parse(jsonData);
+      const { error: insertError } = await supabase.from("biofeedback").insert({
         date: new Date(`${data.date}T${data.time}`),
         time: new Date(`${data.date}T${data.time}`),
         hunger_score: data.hunger_score,
@@ -74,24 +69,27 @@ export default function JsonUploadForm() {
         gym_performance_score: data.gym_performance_score,
         gym_performance_notes: data.gym_performance_notes,
         additional_notes: data.additional_notes,
-        summary: data.summary,
-      })
+        summary: data.summary
+      });
 
       if (insertError) {
-        throw new Error(insertError.message)
+        throw new Error(insertError.message);
       }
 
-      setJsonData('')
-      alert('Data uploaded successfully!')
+      setJsonData("");
+      alert("Data uploaded successfully!");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4"
+    >
       <textarea
         value={jsonData}
         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setJsonData(e.target.value)}
@@ -100,10 +98,13 @@ export default function JsonUploadForm() {
         className="w-full p-2 border rounded"
         required
       />
-      <Button type="submit" disabled={isLoading}>
-        {isLoading ? 'Uploading...' : 'Upload Data'}
+      <Button
+        type="submit"
+        disabled={isLoading}
+      >
+        {isLoading ? "Uploading..." : "Upload Data"}
       </Button>
       {error && <p className="text-red-500">{error}</p>}
     </form>
-  )
+  );
 }
