@@ -13,27 +13,14 @@ export default function DashboardPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    // Fetch initial data
-    fetchBiofeedbackData()
+    const fetchData = async () => {
+      await fetchBiofeedbackData();
+    };
+    fetchData();
+  }, []);  // Empty dependency array
 
-    // Set up real-time subscription
-    const channel = supabase
-      .channel('biofeedback_changes')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'biofeedback' },
-        (payload: { new: BiofeedbackItem }) => {
-          setBiofeedbackData((prevData) => [payload.new, ...prevData].slice(0, 100))
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [])
-
-  async function fetchBiofeedbackData() {
+  // Define fetchBiofeedbackData outside of the useEffect
+  const fetchBiofeedbackData = async () => {
     const { data, error } = await supabase
       .from('biofeedback')
       .select('*')
@@ -45,7 +32,7 @@ export default function DashboardPage() {
     } else {
       setBiofeedbackData(data)
     }
-  }
+  };
 
   const chartData = biofeedbackData.map(item => ({
     time: new Date(item.created_at).toLocaleTimeString(),
