@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, FormEvent, ChangeEvent } from 'react'
-import { useSignIn } from '@clerk/nextjs'
+import { useSignIn } from '@clerk/clerk-react'
 import { Button } from '@/app/components/ui/button'
 import { Input } from '@/app/components/ui/input'
 

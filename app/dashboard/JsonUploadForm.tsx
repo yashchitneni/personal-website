@@ -3,46 +3,24 @@
 import { useState } from 'react'
 import { Button } from '@/app/components/ui/button'
 import { createClient } from '@supabase/supabase-js'
-import { useAuth } from '@clerk/nextjs'
+import { useAuth, useUser } from '@clerk/nextjs/'
 
 interface BiofeedbackData {
   date: string;
   time: string;
-  metrics: {
-    hunger_levels: { score: number; notes: string };
-    digestion: { score: number; notes: string };
-    sleep_quality: { score: number; notes: string };
-    energy_levels: { score: number; notes: string };
-    gym_performance: { score: number; notes: string };
-  };
-  additional_notes: string;
+  hunger_score: number;
+  hunger_notes: string;
+  digestion_score: number;
+  digestion_notes: string;
+  sleep_quality_score: number;
+  sleep_quality_notes: string;
+  energy_levels_score: number;
+  energy_levels_notes: string;
+  gym_performance_score: number;
+  gym_performance_notes: string;
+  additional_notes: string[];
   summary: string;
 }
-
-/**
- * Represents the structure of biofeedback data.
- * @typedef {Object} BiofeedbackData
- * @property {string} date - The date of the biofeedback entry.
- * @property {string} time - The time of the biofeedback entry.
- * @property {Object} metrics - The biofeedback metrics.
- * @property {Object} metrics.hunger_levels - Hunger level metrics.
- * @property {number} metrics.hunger_levels.score - Hunger level score.
- * @property {string} metrics.hunger_levels.notes - Hunger level notes.
- * @property {Object} metrics.digestion - Digestion metrics.
- * @property {number} metrics.digestion.score - Digestion score.
- * @property {string} metrics.digestion.notes - Digestion notes.
- * @property {Object} metrics.sleep_quality - Sleep quality metrics.
- * @property {number} metrics.sleep_quality.score - Sleep quality score.
- * @property {string} metrics.sleep_quality.notes - Sleep quality notes.
- * @property {Object} metrics.energy_levels - Energy level metrics.
- * @property {number} metrics.energy_levels.score - Energy level score.
- * @property {string} metrics.energy_levels.notes - Energy level notes.
- * @property {Object} metrics.gym_performance - Gym performance metrics.
- * @property {number} metrics.gym_performance.score - Gym performance score.
- * @property {string} metrics.gym_performance.notes - Gym performance notes.
- * @property {string} additional_notes - Additional notes for the entry.
- * @property {string} summary - Summary of the biofeedback entry.
- */
 
 /**
  * Form component for uploading JSON biofeedback data.
@@ -50,7 +28,8 @@ interface BiofeedbackData {
  * @returns {JSX.Element} The rendered JSON upload form.
  */
 export default function JsonUploadForm() {
-  const { getToken } = useAuth()
+  const { userId } = useAuth()
+  const { user } = useUser()
   const [jsonData, setJsonData] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -67,6 +46,7 @@ export default function JsonUploadForm() {
     setError(null)
 
     try {
+      const { getToken } = useAuth()
       const token = await getToken({ template: 'supabase' })
       if (!token) throw new Error('Not authenticated')
 
@@ -80,25 +60,26 @@ export default function JsonUploadForm() {
       )
 
       const data: BiofeedbackData = JSON.parse(jsonData)
-      
-      const { error } = await supabase.from('biofeedback').insert({
+      const { error: insertError } = await supabase.from('biofeedback').insert({
         date: new Date(`${data.date}T${data.time}`),
         time: new Date(`${data.date}T${data.time}`),
-        hunger_score: data.metrics.hunger_levels.score,
-        hunger_notes: data.metrics.hunger_levels.notes,
-        digestion_score: data.metrics.digestion.score,
-        digestion_notes: data.metrics.digestion.notes,
-        sleep_quality_score: data.metrics.sleep_quality.score,
-        sleep_quality_notes: data.metrics.sleep_quality.notes,
-        energy_levels_score: data.metrics.energy_levels.score,
-        energy_levels_notes: data.metrics.energy_levels.notes,
-        gym_performance_score: data.metrics.gym_performance.score,
-        gym_performance_notes: data.metrics.gym_performance.notes,
+        hunger_score: data.hunger_score,
+        hunger_notes: data.hunger_notes,
+        digestion_score: data.digestion_score,
+        digestion_notes: data.digestion_notes,
+        sleep_quality_score: data.sleep_quality_score,
+        sleep_quality_notes: data.sleep_quality_notes,
+        energy_levels_score: data.energy_levels_score,
+        energy_levels_notes: data.energy_levels_notes,
+        gym_performance_score: data.gym_performance_score,
+        gym_performance_notes: data.gym_performance_notes,
         additional_notes: data.additional_notes,
         summary: data.summary,
       })
 
-      if (error) throw error
+      if (insertError) {
+        throw new Error(insertError.message)
+      }
 
       setJsonData('')
       alert('Data uploaded successfully!')

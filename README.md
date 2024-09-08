@@ -1,4 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# My World - Personal Website
+
+This is a [Next.js](https://nextjs.org) project that serves as a personal website showcasing various interests and features.
+
+## Technologies Used
+
+- [Next.js 14](https://nextjs.org/) with App Router
+- [React](https://reactjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Shadcn UI](https://ui.shadcn.com/)
+- [Framer Motion](https://www.framer.com/motion/)
+- [Supabase](https://supabase.io/)
+- [Stripe](https://stripe.com/)
+- [Clerk](https://clerk.dev/)
+- [Recharts](https://recharts.org/)
+
+## Features
+
+- Responsive design
+- Authentication with Clerk
+- Newsletter subscription
+- Biofeedback tracking and visualization
+- Payment integration with Stripe
 
 ## Getting Started
 

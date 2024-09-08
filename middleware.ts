@@ -2,8 +2,7 @@ import { clerkMiddleware } from "@clerk/nextjs/server";
 
 export default clerkMiddleware();
 
-/**
- * Configuration for the Clerk middleware.
+/* Configuration for the Clerk middleware.
  * @type {Object}
  */
 export const config = {

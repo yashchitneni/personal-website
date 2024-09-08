@@ -11,12 +11,18 @@ const supabase = createClient(
 )
 
 interface BiofeedbackEntry {
+  id: number;
+  created_at: string;
+  user_id: string;
   date: string;
   hunger_score: number;
   digestion_score: number;
   sleep_quality_score: number;
   energy_levels_score: number;
   gym_performance_score: number | null;
+  mood_score: number;
+  stress_score: number;
+  notes: string | null;
 }
 
 /**
@@ -39,7 +45,7 @@ export default function BiofeedbackChart() {
     const fetchData = async () => {
       const { data, error } = await supabase
         .from('biofeedback')
-        .select('date, hunger_score, digestion_score, sleep_quality_score, energy_levels_score, gym_performance_score')
+        .select('id, created_at, user_id, date, hunger_score, digestion_score, sleep_quality_score, energy_levels_score, gym_performance_score, mood_score, stress_score, notes')
         .order('date', { ascending: true })
 
       if (error) {

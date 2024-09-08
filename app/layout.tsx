@@ -1,6 +1,7 @@
 import { NavBar } from './components/NavBar'
 import './globals.css'
 import type { Metadata } from 'next'
+import { ClerkProvider } from '@clerk/nextjs/'
 
 /**
  * Metadata for the application.
@@ -25,14 +26,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-500 to-indigo-600">
-          <NavBar />
-          <main className="flex-grow">
-            {children}
-          </main>
-        </div>
-      </body>
+      <ClerkProvider>
+        <body>
+          <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-500 to-indigo-600">
+            <NavBar />
+            <main className="flex-grow">
+              {children}
+            </main>
+          </div>
+        </body>
+      </ClerkProvider>
     </html>
   );
 }

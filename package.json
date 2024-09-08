@@ -10,16 +10,20 @@
     "docs": "jsdoc -c jsdoc.json"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.4.1",
     "@clerk/nextjs": "^5.4.1",
+    "@radix-ui/react-toast": "^1.2.1",
     "@stripe/stripe-js": "^4.4.0",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "^2.45.3",
     "autoprefixer": "^10.4.20",
     "drizzle-orm": "^0.33.0",
     "framer-motion": "^11.5.4",
     "lucide-react": "^0.438.0",
-    "next": "14.2.8",
+    "next": "^14.2.8",
     "pg": "^8.12.0",
-    "react": "^18",
+    "react": "^18.3.1",
     "react-dom": "^18",
     "recharts": "^2.12.7",
     "stripe": "^16.9.0"

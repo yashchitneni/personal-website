@@ -18,10 +18,30 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
-    }
+      "@/*": ["./*"],
+      "actions/*": ["./app/actions/*"],
+      "app/*": ["./app/*"],
+      "components/*": ["./app/components/*"],
+      "db/*": ["./db/*"],
+      "lib/*": ["./lib/*"],
+      "prompts/*": ["./prompts/*"],
+      "supabase/*": ["./supabase/*"],
+      "types/*": ["./types/*"],
+      "utils/*": ["./utils/*"]
+    },
+    "types": ["react", "node", "next", "recharts"]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "lib/**/*.ts",
+    "utils/**/*.ts"
+  ],
   "exclude": ["node_modules"]
 }
