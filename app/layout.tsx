@@ -11,8 +11,8 @@ const inter = Inter({ subsets: ['latin'] });
  * @type {Metadata}
  */
 export const metadata: Metadata = {
-  title: "Your Site Name",
-  description: "Your site description"
+  title: "Building Yash",
+  description: "Exploring life's facets through self-experimentation"
 };
 
 /**

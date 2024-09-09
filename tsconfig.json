@@ -41,6 +41,7 @@
     "app/**/*.ts",
     "app/**/*.tsx",
     "lib/**/*.ts",
+    "components/**/*",
     "utils/**/*.ts"
   ],
   "exclude": ["node_modules"]

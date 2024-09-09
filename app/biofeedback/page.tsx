@@ -1,4 +1,4 @@
-import BiofeedbackChart from './BiofeedbackChart';
+import BiofeedbackChart from '../components/BiofeedbackChart';
 
 /**
  * Biofeedback page component.

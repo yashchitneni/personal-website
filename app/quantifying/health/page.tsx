@@ -1,8 +1,37 @@
-export default function Health() {
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { BiofeedbackChart } from '../../components/BiofeedbackChart'
+import { DateRangePicker } from '../../components/date-range-picker'
+import { AnimatedTitle } from '../../components/AnimatedTitle'
+import { DateRange } from '../../../types/date-range'
+
+export default function HealthPage() {
+  const router = useRouter()
+
+  const handleUploadClick = () => {
+    router.push('/quantifying/health/upload')
+  }
+
+  const handleRangeChange = (range: DateRange) => {
+    // Handle the date range change
+    console.log(range)
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold mb-8">Health Biofeedback Tracker</h1>
-      <p>This is where your biofeedback tracker will be implemented.</p>
+    <div className="container mx-auto px-4 py-8">
+      <AnimatedTitle>Quantifying Health</AnimatedTitle>
+      <div className="mb-6">
+        <DateRangePicker onRangeChange={handleRangeChange} />
+      </div>
+      <div className="mb-6">
+        <Button onClick={handleUploadClick}>Upload Health Data</Button>
+      </div>
+      <BiofeedbackChart data={[]} selectedMetrics={[]} metrics={[]} onDataPointClick={function (data: { date: string; time: string; metrics: { [key: string]: { score: number; notes: string } }; additional_notes: string[]; summary: string }): void {
+        throw new Error('Function not implemented.')
+      } } />
+      {/* ... other components ... */}
     </div>
-  );
+  )
 }
