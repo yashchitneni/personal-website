@@ -18,7 +18,7 @@ type ChartData = {
   summary: string
 }
 
-type BiofeedbackChartProps = {
+export type BiofeedbackChartProps = {
   data: ChartData[]
   selectedMetrics: string[]
   metrics: { name: string; color: string }[]
