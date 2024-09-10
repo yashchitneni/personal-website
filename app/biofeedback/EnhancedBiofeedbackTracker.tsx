@@ -121,7 +121,9 @@ export default function EnhancedBiofeedbackTracker() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Biofeedback Tracker</CardTitle>
-          <DateRangePicker onRangeChange={(range: DateRange) => handleDateRangeChange(range)} />
+          <DateRangePicker 
+          value={dateRange}
+          onChange={(range: DateRange) => handleDateRangeChange(range)} />
         </CardHeader>
         <CardContent>
           <BiofeedbackChart 
