@@ -1,14 +1,14 @@
 "use client"
 
 import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Button } from "../components/ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover"
 import { CalendarIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns'
-import { DateRange } from '../../types/date-range'
+import { DateRange } from '../types/date-range'
 import { DayPicker, DateRange as DayPickerDateRange } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
-import { cn } from '@/lib/utils'
+import { cn } from '@/app/lib/utils'
 
 export interface DateRangePickerProps {
     value: DateRange | undefined;

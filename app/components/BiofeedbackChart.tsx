@@ -1,69 +1,45 @@
 'use client'
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { format, parseISO } from 'date-fns'
+import { useState, useEffect } from 'react';
+import { fetchDailyAggregations } from '../quantifying/health/upload/metrics';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useAuth } from '@clerk/nextjs';
+import { BiofeedbackEntry, BiofeedbackChartProps } from '../types/metrics'
 
-type Metric = {
-  score: number
-  notes: string
-}
 
-type ChartData = {
-  date: string
-  time: string
-  metrics: {
-    [key: string]: Metric
-  }
-  additional_notes: string[]
-  summary: string
-}
 
-export type BiofeedbackChartProps = {
-  data: ChartData[]
-  selectedMetrics: string[]
-  metrics: { name: string; color: string }[]
-  onDataPointClick: (data: ChartData) => void
-}
+export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initialData, selectedMetrics, metrics, onDataPointClick }) => {
+  const [data, setData] = useState<BiofeedbackEntry[]>(initialData);
+  const { userId } = useAuth();
 
-export function BiofeedbackChart({ data, selectedMetrics, metrics, onDataPointClick }: BiofeedbackChartProps) {
-  const chartData = data.map(entry => ({
-    date: entry.date,
-    ...Object.fromEntries(
-      Object.entries(entry.metrics).map(([key, value]) => [key, value.score])
-    )
-  }))
+  useEffect(() => {
+    if (userId) {
+      const endDate = new Date().toISOString().split('T')[0];
+      const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      fetchDailyAggregations(userId, startDate, endDate)
+        .then((result) => setData(result || [])); // Ensure result is an array
+    }
+  }, [userId]);
 
   return (
-    <div className="h-[300px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartData} onClick={(data) => {
-          if (data?.activePayload?.[0]?.payload) {
-            onDataPointClick(data.activePayload[0].payload as ChartData);
-          }
-        }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey="date" 
-            tickFormatter={(value) => format(parseISO(value), 'd')}
-            interval={Math.floor(chartData.length / 10)}
+    <ResponsiveContainer width="100%" height={400}>
+      <LineChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="date" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        {metrics.map((metric, index) => (
+          <Line
+            key={metric.name}
+            type="monotone"
+            dataKey={`metrics.${metric.name.toLowerCase().replace(' ', '_')}.score`}
+            stroke={metric.color}
+            name={metric.name}
           />
-          <YAxis domain={[0, 5]} />
-          <Tooltip 
-            labelFormatter={(value) => format(parseISO(value), 'MMMM d, yyyy')}
-            formatter={(value) => [(value as number).toFixed(2), '']}
-          />
-          <Legend />
-          {selectedMetrics.map((metric) => (
-            <Line 
-              key={metric} 
-              type="monotone" 
-              dataKey={metric} 
-              stroke={metrics.find(m => m.name === metric)?.color}
-              activeDot={{ r: 8 }}
-            />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  )
+        ))}
+      </LineChart>
+    </ResponsiveContainer>
+  );
 }

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { Membership } from '../../types/membership'
+import { Membership } from '../../app/types/membership'
 
 // Initialize Supabase client
 const supabase = createClient(

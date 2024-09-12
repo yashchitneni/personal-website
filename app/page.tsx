@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const roles = [
-  "startup founder",
-  "programmer",
-  "designer",
+  "builder",
+  "marketer",
   "copywriter",
   "product manager",
   // ... add more roles as needed

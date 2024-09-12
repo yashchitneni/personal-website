@@ -1,15 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card"
-
-type Insight = {
-  title: string
-  value: string | number
-  change?: 'positive' | 'negative' | 'neutral'
-}
-
-type DailyInsightsProps = {
-  date: Date
-  insights: Insight[]
-}
+import { Insight, DailyInsightsProps } from "../types/insights"
 
 export function DailyInsights({ date, insights }: DailyInsightsProps) {
   return (

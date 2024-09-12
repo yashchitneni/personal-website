@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import { Button } from '../../../components/ui/button'
+import { Textarea } from '../../../components/ui/textarea'
 import { AnimatedTitle } from '../../../components/AnimatedTitle'
 import { useAuth, SignInButton } from '@clerk/nextjs'
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/app/components/ui/use-toast"
 
 export default function UploadHealthData() {
   const [jsonData, setJsonData] = useState('')
@@ -68,7 +68,7 @@ export default function UploadHealthData() {
               rows={10}
             />
           </div>
-          <Button onClick={handleUpload}>Upload Data</Button>
+          <Button onClick={handleUpload}>Upload Personal Data</Button>
         </>
       ) : (
         <div className="text-center">
