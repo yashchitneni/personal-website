@@ -45,7 +45,6 @@
     "app/lib/**/*.ts",
     "components/**/*",
     "utils/**/*.ts",
-    "node_modules/@clerk/**/*.d.ts"
   ],
   "exclude": ["node_modules"]
 }

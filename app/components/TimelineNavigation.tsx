@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from "../components/ui/button"
+import Button from "../components/ui/button"
 import { Card, CardContent } from "../components/ui/Card"
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { format, eachDayOfInterval, isSameDay } from 'date-fns'

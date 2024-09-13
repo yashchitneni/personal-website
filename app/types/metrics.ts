@@ -6,10 +6,8 @@ export interface Metric {
 
 export interface BiofeedbackEntry {
     id?: string;
-    user_id: string;
     date: string;
     time: string;
-    entry_timestamp: string;
     metrics: {
         sex_drive: Metric;
         mood: Metric;
@@ -27,9 +25,7 @@ export interface BiofeedbackEntry {
 
 export interface DailyAggregation {
     id?: string;
-    user_id: string;
     date: string;
-    time: string;
     entry_timestamp: string;
     metrics: {
         sex_drive: Metric;
@@ -48,8 +44,9 @@ export interface DailyAggregation {
 }
 
 export interface BiofeedbackChartProps {
-    data: BiofeedbackEntry[];
+    data: DailyAggregation[];
     selectedMetrics: string[];
     metrics: { name: string; color: string }[];
-    onDataPointClick: (data: BiofeedbackEntry) => void;
+    onDataPointClick: (data: DailyAggregation) => void;
+    dateRange: { startDate: string; endDate: string };
 }

@@ -1,45 +1,77 @@
 'use client'
 
-import { useState, useEffect } from 'react';
-import { fetchDailyAggregations } from '../quantifying/health/upload/metrics';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useAuth } from '@clerk/nextjs';
-import { BiofeedbackEntry, BiofeedbackChartProps } from '../types/metrics';
+import React, { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { DailyAggregation, BiofeedbackChartProps } from '../types/metrics';
+import { differenceInDays } from 'date-fns';
 
-export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initialData, selectedMetrics, metrics, onDataPointClick }) => {
-  const [data, setData] = useState<BiofeedbackEntry[]>(initialData);
-  const { userId } = useAuth();
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-  useEffect(() => {
-    if (userId) {
-      const endDate = new Date().toISOString().split('T')[0];
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 1); // Set to yesterday
-      const formattedStartDate = startDate.toISOString().split('T')[0];
+export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initialData, selectedMetrics, metrics, onDataPointClick, dateRange }) => { // Add dateRange to props
+  const [data, setData] = useState<DailyAggregation[]>(initialData);
+  const [isBarChart, setIsBarChart] = useState(false);
 
-      fetchDailyAggregations(userId, formattedStartDate, endDate)
-        .then((result) => setData(result || [])); // Ensure result is an array
+  // Fetch data based on selected metrics and date range
+  const fetchData = async (dateRange: { startDate: string; endDate: string }) => {
+    const { data: result, error } = await supabase
+      .from('daily_aggregations')
+      .select('*')
+      .gte('date', dateRange.startDate)
+      .lte('date', dateRange.endDate)
+      .order('date', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching data:', error);
+    } else {
+      setData(result || []); // Update state with fetched data
     }
-  }, [userId]);
+  };
 
-  return (
-    <ResponsiveContainer width="100%" height={400}>
-      <LineChart data={data}>
+  // Effect to fetch data when selectedMetrics or date range changes
+  useEffect(() => {
+    if (selectedMetrics.length > 0 && dateRange) { // Check for dateRange
+      fetchData(dateRange); // Use the dynamic date range
+      const daysDifference = differenceInDays(new Date(dateRange.endDate), new Date(dateRange.startDate));
+      setIsBarChart(daysDifference <= 5);
+    }
+  }, [selectedMetrics, dateRange]); // Add dateRange as a dependency
+
+  const renderChart = () => {
+    const ChartComponent = isBarChart ? BarChart : LineChart;
+    const DataComponent = isBarChart ? Bar : Line;
+
+    return (
+      <ChartComponent data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
         <YAxis />
         <Tooltip />
         <Legend />
         {metrics.map((metric) => (
-          <Line
-            key={metric.name}
-            type="monotone"
-            dataKey={`metrics.${metric.name.toLowerCase().replace(' ', '_')}.score`}
-            stroke={metric.color}
-            name={metric.name}
-          />
+          selectedMetrics.includes(metric.name) && (
+            React.createElement(DataComponent as React.ComponentType<any>, {
+              key: metric.name,
+              type: "monotone",
+              dataKey: `metrics.${metric.name.toLowerCase().replace(' ', '_')}.score`,
+              stroke: metric.color,
+              fill: isBarChart ? metric.color : undefined,
+              name: metric.name,
+              onClick: (entry: DailyAggregation) => onDataPointClick && onDataPointClick(entry)
+            })
+          )
         ))}
-      </LineChart>
+      </ChartComponent>
+    );
+  };
+
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      {renderChart()}
     </ResponsiveContainer>
   );
 }

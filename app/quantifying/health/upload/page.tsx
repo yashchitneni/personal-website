@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import { Button } from '../../../components/ui/button';
+import Button from '../../../components/ui/button';
 import { Textarea } from '../../../components/ui/textarea';
 import { AnimatedTitle } from '../../../components/AnimatedTitle';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';

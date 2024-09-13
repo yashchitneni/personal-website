@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '../../components/ui/button'
+import Button from '../../components/ui/button'
 import { BiofeedbackChart } from '../../components/BiofeedbackChart'
 import { DateRangePicker } from '../../components/date-range-picker'
 import { AnimatedTitle } from '../../components/AnimatedTitle'
@@ -10,9 +10,9 @@ import { Card, CardHeader, CardContent } from '../../components/ui/Card'
 import { TimelineNavigation } from "../../components/TimelineNavigation"
 import { DailyInsights } from "../../components/DailyInsights"
 import { createClient } from '@supabase/supabase-js'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, subDays } from 'date-fns'
 import { DateRange } from '@/app/types/date-range'
-import { BiofeedbackEntry, Metric } from '../../types/metrics'
+import { DailyAggregation, Metric } from '../../types/metrics'
 import { Insight } from '@/app/types/insights'
 
 // Initialize Supabase client
@@ -36,37 +36,30 @@ const metrics = [
 export default function HealthPage() {
   const router = useRouter()
   const [selectedMetrics, setSelectedMetrics] = useState(metrics.slice(0, 2).map(m => m.name))
-  const [dateRange, setDateRange] = useState<DateRange | undefined>()
-  const [chartData, setChartData] = useState<BiofeedbackEntry[]>([])
+  const [dateRange, setDateRange] = useState<DateRange>({
+    startDate: subDays(new Date(), 7), // Set to a week ago
+    endDate: new Date() // Set to today
+  })
+  const [chartData, setChartData] = useState<DailyAggregation[]>([])
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   useEffect(() => {
-    if (dateRange?.startDate && dateRange?.endDate) {
-      const fetchData = async () => {
-        const { data, error } = await supabase
-          .from('biofeedback')
-          .select('*, mood_score, energy_levels_score')
-          .gte('date', format(dateRange.startDate, 'yyyy-MM-dd'))
-          .lte('date', format(dateRange.endDate, 'yyyy-MM-dd'))
-          .order('date', { ascending: true })
+    const fetchData = async () => {
+      const { data, error } = await supabase
+        .from('daily_aggregations')
+        .select('*')
+        .gte('date', format(dateRange.startDate, 'yyyy-MM-dd'))
+        .lte('date', format(dateRange.endDate, 'yyyy-MM-dd'))
+        .order('date', { ascending: true })
 
-        if (error) {
-          console.error('Error fetching data:', error)
-        } else {
-          const formattedData = data.map((entry: any) => ({
-            ...entry,
-            metrics: {
-              ...entry.metrics,
-              mood_score: entry.mood_score,
-              energy_levels_score: entry.energy_levels_score,
-            }
-          }));
-          setChartData(formattedData)
-        }
+      if (error) {
+        console.error('Error fetching data:', error)
+      } else {
+        setChartData(data || [])
       }
-
-      fetchData()
     }
+
+    fetchData()
   }, [dateRange])
 
   const handleMetricToggle = (metric: string) => {
@@ -77,10 +70,10 @@ export default function HealthPage() {
 
   const handleDateRangeChange = (range: DateRange) => {
     setDateRange(range)
-    setSelectedDate(range?.startDate || null)
+    setSelectedDate(range.startDate)
   }
 
-  const handleDataPointClick = (data: BiofeedbackEntry) => {
+  const handleDataPointClick = (data: DailyAggregation) => {
     setSelectedDate(parseISO(data.date))
   }
 
@@ -109,7 +102,7 @@ export default function HealthPage() {
           <Button onClick={handleUploadClick} variant="outline">Upload Health Data</Button>
           <DateRangePicker 
             value={dateRange}
-            onChange={(range: DateRange) => handleDateRangeChange(range)}
+            onChange={handleDateRangeChange}
           />
         </CardHeader>
         <CardContent>
@@ -118,6 +111,10 @@ export default function HealthPage() {
             selectedMetrics={selectedMetrics}
             metrics={metrics}
             onDataPointClick={handleDataPointClick}
+            dateRange={{ 
+              startDate: format(dateRange.startDate, 'yyyy-MM-dd'), 
+              endDate: format(dateRange.endDate, 'yyyy-MM-dd') 
+            }}
           />
           <div className="flex flex-wrap gap-2 my-4">
             {metrics.map((metric) => (
@@ -146,7 +143,7 @@ export default function HealthPage() {
       {selectedDate && (
         <DailyInsights 
           date={selectedDate}
-          insights={getDailyInsights(selectedDate)} // Ensure this returns an array
+          insights={getDailyInsights(selectedDate)}
         />
       )}
     </div>

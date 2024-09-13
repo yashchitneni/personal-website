@@ -9,11 +9,12 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+  console.log('Token:', token); // Log the token
 
-  const { data: user, error: authError } = await supabase.auth.getUser(token);
-  const userId = user?.user?.id; // Safely access user ID
+  const { data: userData, error: authError } = await supabase.auth.getUser(token);
+  console.log('User Data:', userData); // Log user data
 
-  if (authError || !userId) {
+  if (authError || !userData) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -28,11 +29,15 @@ export async function POST(request: NextRequest) {
     // Prepare the biofeedback entry
     const biofeedbackData = {
       ...data,
-      user_id: userId, // Use the safely accessed user ID
+      date: today, // Add current date
+      time: time,   // Add current time
     };
 
-    // Insert biofeedback entry with date and time
-    const result = await insertBiofeedbackEntry(biofeedbackData, userId, today, time);
+    // Log the data being inserted
+    console.log('Inserting data:', biofeedbackData);
+
+    // Insert biofeedback entry
+    const result = await insertBiofeedbackEntry(biofeedbackData);
 
     if (!result) {
       throw new Error('Failed to insert biofeedback entry');
