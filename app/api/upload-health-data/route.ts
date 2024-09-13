@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { auth } from '@clerk/nextjs/server';
 import { insertBiofeedbackEntry } from '@/app/quantifying/health/upload/metrics';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export async function POST(request: NextRequest) {
-  const { userId } = auth();
+  const token = request.headers.get('Authorization')?.replace('Bearer ', '');
 
-  if (!userId) {
+  const { data: user, error: authError } = await supabase.auth.getUser(token);
+  const userId = user?.user?.id; // Safely access user ID
+
+  if (authError || !userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -26,7 +28,7 @@ export async function POST(request: NextRequest) {
     // Prepare the biofeedback entry
     const biofeedbackData = {
       ...data,
-      user_id: userId, // Ensure user_id is included
+      user_id: userId, // Use the safely accessed user ID
     };
 
     // Insert biofeedback entry with date and time

@@ -29,6 +29,7 @@
       "lib/*": ["./app/lib/*"],
       "prompts/*": ["./app/prompts/*"],
       "supabase/*": ["./app/supabase/*"],
+      "@supabase/auth-helpers-nextjs": ["node_modules/@supabase/auth-helpers-nextjs"],
       "types/*": ["./app/types/*"],
       "utils/*": ["./app/utils/*"]
     },
