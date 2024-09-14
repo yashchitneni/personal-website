@@ -10,9 +10,10 @@ type TimelineNavigationProps = {
   startDate: Date
   endDate: Date
   onDateSelect: (date: Date) => void
+  selectedDate: Date | null
 }
 
-export function TimelineNavigation({ startDate, endDate, onDateSelect }: TimelineNavigationProps) {
+export function TimelineNavigation({ startDate, endDate, onDateSelect, selectedDate }: TimelineNavigationProps) {
   const [visibleStartIndex, setVisibleStartIndex] = useState(0)
   const dates = eachDayOfInterval({ start: startDate, end: endDate })
   const visibleDates = dates.slice(visibleStartIndex, visibleStartIndex + 7)
@@ -36,8 +37,10 @@ export function TimelineNavigation({ startDate, endDate, onDateSelect }: Timelin
             {visibleDates.map((date) => (
               <Button
                 key={date.toISOString()}
-                variant="ghost"
-                className={`flex-1 text-sm ${isSameDay(date, new Date()) ? 'bg-primary text-primary-foreground' : ''}`}
+                variant={selectedDate && isSameDay(date, selectedDate) ? "default" : "ghost"}
+                className={`flex-1 text-sm ${
+                  isSameDay(date, new Date()) ? 'bg-secondary text-secondary-foreground' : ''
+                }`}
                 onClick={() => onDateSelect(date)}
               >
                 <div className="flex flex-col items-center">

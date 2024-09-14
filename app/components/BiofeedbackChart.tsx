@@ -49,8 +49,8 @@ export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initia
       <ChartComponent data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
-        <YAxis />
-        <Tooltip />
+        <YAxis domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]} />
+        <Tooltip cursor={{ fill: 'transparent' }} />
         <Legend />
         {metrics.map((metric) => (
           selectedMetrics.includes(metric.name) && (

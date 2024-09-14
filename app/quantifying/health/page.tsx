@@ -10,10 +10,11 @@ import { Card, CardHeader, CardContent } from '../../components/ui/Card'
 import { TimelineNavigation } from "../../components/TimelineNavigation"
 import { DailyInsights } from "../../components/DailyInsights"
 import { createClient } from '@supabase/supabase-js'
-import { format, parseISO, subDays } from 'date-fns'
+import { format, parseISO, subDays, startOfDay } from 'date-fns'
 import { DateRange } from '@/app/types/date-range'
-import { DailyAggregation, Metric } from '../../types/metrics'
+import { DailyAggregation, Metric } from '@/app/types/metrics'
 import { Insight } from '@/app/types/insights'
+import { DailySummary } from "../../components/DailySummary"
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -44,6 +45,12 @@ export default function HealthPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   useEffect(() => {
+    if (dateRange.startDate) {
+      setSelectedDate(startOfDay(dateRange.startDate))
+    }
+  }, [dateRange])
+
+  useEffect(() => {
     const fetchData = async () => {
       const { data, error } = await supabase
         .from('daily_aggregations')
@@ -70,7 +77,7 @@ export default function HealthPage() {
 
   const handleDateRangeChange = (range: DateRange) => {
     setDateRange(range)
-    setSelectedDate(range.startDate)
+    setSelectedDate(startOfDay(range.startDate))
   }
 
   const handleDataPointClick = (data: DailyAggregation) => {
@@ -78,12 +85,34 @@ export default function HealthPage() {
   }
 
   const handleTimelineDateSelect = (date: Date) => {
-    setSelectedDate(date)
+    setSelectedDate(startOfDay(date))
   }
 
   const getDailyInsights = (date: Date): Insight[] => {
-    // ... (implement logic to return an array of insights)
-    return []; // Replace with actual insights logic
+    if (!date || chartData.length === 0) return []
+
+    const dateString = format(date, 'yyyy-MM-dd')
+    const dailyData = chartData.find(d => d.date === dateString)
+    if (!dailyData) return []
+
+    return selectedMetrics.map(metricName => {
+      const metricKey = metricName.toLowerCase().replace(' ', '_') as keyof DailyAggregation['metrics'];
+      const dailyValue = dailyData.metrics[metricKey]?.score || 0
+      const averageValue = chartData.reduce((sum, d) => sum + (d.metrics[metricKey]?.score || 0), 0) / chartData.length
+
+      // Extract only the notes part
+      const fullNote = dailyData.metrics[metricKey]?.aggregated_note || '';
+      const notesMatch = fullNote.match(/Notes: (.+)/);
+      const notes = notesMatch ? notesMatch[1] : '';
+
+      return {
+        title: metricName,
+        value: dailyValue,
+        average: averageValue,
+        change: dailyValue > averageValue ? 'positive' : dailyValue < averageValue ? 'negative' : 'neutral',
+        aggregatedNote: notes  // This now contains only the notes part
+      }
+    })
   }
 
   function isMetric(value: any): value is Metric {
@@ -92,6 +121,19 @@ export default function HealthPage() {
 
   const handleUploadClick = () => {
     router.push('/quantifying/health/upload')
+  }
+
+  const getDailySummary = (date: Date) => {
+    if (!date || chartData.length === 0) return { summary: '', additionalNotes: [] }
+
+    const dateString = format(date, 'yyyy-MM-dd')
+    const dailyData = chartData.find(d => d.date === dateString)
+    if (!dailyData) return { summary: '', additionalNotes: [] }
+
+    return {
+      summary: dailyData.summary,
+      additionalNotes: dailyData.additional_notes
+    }
   }
 
   return (
@@ -137,8 +179,15 @@ export default function HealthPage() {
           startDate={dateRange.startDate} 
           endDate={dateRange.endDate} 
           onDateSelect={handleTimelineDateSelect}
+          selectedDate={selectedDate}
         />
       )}
+
+      {/* {selectedDate && (
+        <DailySummary 
+          {...getDailySummary(selectedDate)}
+        />
+      )} */}
 
       {selectedDate && (
         <DailyInsights 
