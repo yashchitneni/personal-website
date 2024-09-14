@@ -37,7 +37,7 @@ export default function HealthPage() {
   const router = useRouter()
   const [selectedMetrics, setSelectedMetrics] = useState(metrics.slice(0, 2).map(m => m.name))
   const [dateRange, setDateRange] = useState<DateRange>({
-    startDate: subDays(new Date(), 7), // Set to a week ago
+    startDate: new Date(), // Set to a week ago
     endDate: new Date() // Set to today
   })
   const [chartData, setChartData] = useState<DailyAggregation[]>([])
