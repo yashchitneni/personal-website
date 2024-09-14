@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { insertBiofeedbackEntry } from '@/app/quantifying/health/upload/metrics';
+import { format, toZonedTime } from 'date-fns-tz'; // You'll need to install this package
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,16 +22,19 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
 
-    // Get current date and time
-    const now = new Date();
-    const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
-    const time = now.toTimeString().split(' ')[0]; // HH:MM:SS
+    // Get the user's time zone from the request headers or use a default
+    const userTimeZone = request.headers.get('X-User-Timezone') || 'America/Chicago'; // Default to Central Time
+
+    // Get current date and time in the user's time zone
+    const now = toZonedTime(new Date(), userTimeZone);
+    const today = format(now, 'yyyy-MM-dd', { timeZone: userTimeZone });
+    const time = format(now, 'HH:mm:ss', { timeZone: userTimeZone });
 
     // Prepare the biofeedback entry
     const biofeedbackData = {
       ...data,
-      date: today, // Add current date
-      time: time,   // Add current time
+      date: today,
+      time: time,
     };
 
     // Log the data being inserted

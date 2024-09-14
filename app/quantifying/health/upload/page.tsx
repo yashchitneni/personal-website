@@ -54,6 +54,7 @@ export default function UploadHealthData() {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
+          'X-User-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone, // Add this line
         },
         body: jsonData,
       });
