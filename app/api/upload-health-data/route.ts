@@ -8,6 +8,16 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+/**
+ * Handles POST requests for uploading health data.
+ * @async
+ * @function POST
+ * @param {NextRequest} request - The incoming request object.
+ * @returns {Promise<NextResponse>} A JSON response indicating success or failure.
+ * @throws {Error} If there's an issue with authentication or data insertion.
+ * @description This function authenticates the user, processes the incoming health data,
+ * adjusts it for the user's timezone, and inserts it into the database.
+ */
 export async function POST(request: NextRequest) {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
   console.log('Token:', token); // Log the token

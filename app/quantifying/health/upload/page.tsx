@@ -9,6 +9,13 @@ import { useToast } from "@/app/components/ui/use-toast";
 import { useRouter } from 'next/navigation';
 import { User } from '@supabase/auth-helpers-nextjs';
 
+/**
+ * UploadHealthData Component
+ * @component
+ * @description Renders a page for uploading health data. It includes authentication checks,
+ * a text area for JSON input, and handles the upload process.
+ * @returns {JSX.Element} The rendered UploadHealthData component.
+ */
 export default function UploadHealthData() {
   const [jsonData, setJsonData] = useState('');
   const [user, setUser] = useState<User | null>(null);
@@ -17,6 +24,11 @@ export default function UploadHealthData() {
   const { toast } = useToast();
   const router = useRouter();
 
+  /**
+   * Fetches the current user data on component mount.
+   * @function
+   * @async
+   */
   useEffect(() => {
     async function getUser() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -26,12 +38,22 @@ export default function UploadHealthData() {
     getUser();
   }, [supabase.auth]);
 
+  /**
+   * Redirects unauthenticated users to the login page.
+   * @function
+   */
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/login'); // Adjust the path as needed
     }
   }, [user, isLoading, router]);
 
+  /**
+   * Handles the upload of health data.
+   * @function
+   * @async
+   * @description Validates the input, sends the data to the server, and handles the response.
+   */
   const handleUpload = async () => {
     if (!jsonData) {
       toast({

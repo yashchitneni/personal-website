@@ -34,6 +34,13 @@ const metrics = [
   { name: "Soreness", color: "#26de81" },
 ]
 
+/**
+ * HealthPage Component
+ * @component
+ * @description Renders the main health dashboard page. It displays biofeedback charts,
+ * allows metric selection, and provides daily insights.
+ * @returns {JSX.Element} The rendered HealthPage component.
+ */
 export default function HealthPage() {
   const router = useRouter()
   const [selectedMetrics, setSelectedMetrics] = useState(metrics.slice(0, 2).map(m => m.name))
@@ -44,12 +51,22 @@ export default function HealthPage() {
   const [chartData, setChartData] = useState<DailyAggregation[]>([])
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
+  /**
+   * Fetches biofeedback data based on the selected date range.
+   * @function
+   * @async
+   */
   useEffect(() => {
     if (dateRange.startDate) {
       setSelectedDate(startOfDay(dateRange.startDate))
     }
   }, [dateRange])
 
+  /**
+   * Fetches biofeedback data based on the selected date range.
+   * @function
+   * @async
+   */
   useEffect(() => {
     const fetchData = async () => {
       const { data, error } = await supabase
@@ -69,17 +86,32 @@ export default function HealthPage() {
     fetchData()
   }, [dateRange])
 
+  /**
+   * Toggles the selection of a metric for display.
+   * @function
+   * @param {string} metric - The name of the metric to toggle.
+   */
   const handleMetricToggle = (metric: string) => {
     setSelectedMetrics(prev => 
       prev.includes(metric) ? prev.filter(m => m !== metric) : [...prev, metric]
     )
   }
 
+  /**
+   * Updates the date range for data display.
+   * @function
+   * @param {DateRange} range - The new date range to set.
+   */
   const handleDateRangeChange = (range: DateRange) => {
     setDateRange(range)
     setSelectedDate(startOfDay(range.startDate))
   }
 
+  /**
+   * Handles the click event on a data point in the chart.
+   * @function
+   * @param {DailyAggregation} data - The data point that was clicked.
+   */
   const handleDataPointClick = (data: DailyAggregation) => {
     setSelectedDate(parseISO(data.date))
   }
@@ -88,6 +120,12 @@ export default function HealthPage() {
     setSelectedDate(startOfDay(date))
   }
 
+  /**
+   * Generates insights for a specific date.
+   * @function
+   * @param {Date} date - The date for which to generate insights.
+   * @returns {Insight[]} An array of insights for the given date.
+   */
   const getDailyInsights = (date: Date): Insight[] => {
     if (!date || chartData.length === 0) return []
 
@@ -123,6 +161,12 @@ export default function HealthPage() {
     router.push('/quantifying/health/upload')
   }
 
+  /**
+   * Retrieves the daily summary for a specific date.
+   * @function
+   * @param {Date} date - The date for which to retrieve the summary.
+   * @returns {{summary: string, additionalNotes: string[]}} The summary and additional notes for the given date.
+   */
   const getDailySummary = (date: Date) => {
     if (!date || chartData.length === 0) return { summary: '', additionalNotes: [] }
 
