@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { DailyAggregation, BiofeedbackChartProps } from '../types/metrics';
 import { differenceInDays } from 'date-fns';
 
@@ -12,11 +12,11 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initialData, selectedMetrics, metrics, onDataPointClick, dateRange }) => { // Add dateRange to props
+export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initialData, selectedMetrics, metrics, onDataPointClick, dateRange }) => {
   const [data, setData] = useState<DailyAggregation[]>(initialData);
   const [isBarChart, setIsBarChart] = useState(false);
+  const [hoveredMetric, setHoveredMetric] = useState<string | null>(null);
 
-  // Fetch data based on selected metrics and date range
   const fetchData = async (dateRange: { startDate: string; endDate: string }) => {
     const { data: result, error } = await supabase
       .from('daily_aggregations')
@@ -28,22 +28,20 @@ export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initia
     if (error) {
       console.error('Error fetching data:', error);
     } else {
-      setData(result || []); // Update state with fetched data
+      setData(result || []);
     }
   };
 
-  // Effect to fetch data when selectedMetrics or date range changes
   useEffect(() => {
-    if (selectedMetrics.length > 0 && dateRange) { // Check for dateRange
-      fetchData(dateRange); // Use the dynamic date range
+    if (selectedMetrics.length > 0 && dateRange) {
+      fetchData(dateRange);
       const daysDifference = differenceInDays(new Date(dateRange.endDate), new Date(dateRange.startDate));
       setIsBarChart(daysDifference <= 5);
     }
-  }, [selectedMetrics, dateRange]); // Add dateRange as a dependency
+  }, [selectedMetrics, dateRange]);
 
   const renderChart = () => {
-    const ChartComponent = isBarChart ? BarChart : LineChart;
-    const DataComponent = isBarChart ? Bar : Line;
+    const ChartComponent = isBarChart ? BarChart : AreaChart;
 
     return (
       <ChartComponent data={data}>
@@ -54,15 +52,39 @@ export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initia
         <Legend />
         {metrics.map((metric) => (
           selectedMetrics.includes(metric.name) && (
-            React.createElement(DataComponent as React.ComponentType<any>, {
-              key: metric.name,
-              type: "monotone",
-              dataKey: `metrics.${metric.name.toLowerCase().replace(' ', '_')}.score`,
-              stroke: metric.color,
-              fill: isBarChart ? metric.color : undefined,
-              name: metric.name,
-              onClick: (entry: DailyAggregation) => onDataPointClick && onDataPointClick(entry)
-            })
+            isBarChart ? (
+              <Bar
+                key={metric.name}
+                dataKey={`metrics.${metric.name.toLowerCase().replace(' ', '_')}.score`}
+                fill={metric.color}
+                name={metric.name}
+                onMouseEnter={() => setHoveredMetric(metric.name)}
+                onMouseLeave={() => setHoveredMetric(null)}
+                onClick={(entry: any) => {
+                  if (entry && entry.payload && entry.payload.date) {
+                    onDataPointClick && onDataPointClick(entry.payload);
+                  }
+                }}
+              />
+            ) : (
+              <Area
+                key={metric.name}
+                type="monotone"
+                dataKey={`metrics.${metric.name.toLowerCase().replace(' ', '_')}.score`}
+                stroke={metric.color}
+                fill={metric.color}
+                fillOpacity={0.3}
+                name={metric.name}
+                onMouseEnter={() => setHoveredMetric(metric.name)}
+                onMouseLeave={() => setHoveredMetric(null)}
+                onClick={(entry: any) => {
+                  if (entry && entry.payload && entry.payload.date) {
+                    onDataPointClick && onDataPointClick(entry.payload);
+                  }
+                }}
+                strokeWidth={hoveredMetric === metric.name ? 3 : 1}
+              />
+            )
           )
         ))}
       </ChartComponent>
@@ -70,8 +92,10 @@ export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initia
   };
 
   return (
-    <ResponsiveContainer width="100%" height={400}>
-      {renderChart()}
-    </ResponsiveContainer>
+    <div className="w-full h-[400px]"> {/* Removed red border, using Tailwind classes */}
+      <ResponsiveContainer width="100%" height="100%">
+        {data.length > 0 ? renderChart() : <div>No data available for the selected range.</div>}
+      </ResponsiveContainer>
+    </div>
   );
 }

@@ -10,11 +10,13 @@ import { Card, CardHeader, CardContent } from '../../components/ui/Card'
 import { TimelineNavigation } from "../../components/TimelineNavigation"
 import { DailyInsights } from "../../components/DailyInsights"
 import { createClient } from '@supabase/supabase-js'
-import { format, parseISO, subDays, startOfDay } from 'date-fns'
+import { format, parseISO, startOfDay } from 'date-fns'
 import { DateRange } from '@/app/types/date-range'
 import { DailyAggregation, Metric } from '@/app/types/metrics'
 import { Insight } from '@/app/types/insights'
-import { DailySummary } from "../../components/DailySummary"
+import ProgressBar from '../../components/ui/progressBar' // New component for progress visualization
+import MetricIcon from '../../components/ui/metricIcon' // New component for metric icons
+// import { EnhancedChart } from '../../components/EnhancedChart';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -113,8 +115,13 @@ export default function HealthPage() {
    * @param {DailyAggregation} data - The data point that was clicked.
    */
   const handleDataPointClick = (data: DailyAggregation) => {
-    setSelectedDate(parseISO(data.date))
-  }
+    // Check if data has a date property before parsing
+    if (data && data.date) {
+      setSelectedDate(parseISO(data.date));
+    } else {
+      console.error('Clicked data does not have a valid date:', data);
+    }
+  };
 
   const handleTimelineDateSelect = (date: Date) => {
     setSelectedDate(startOfDay(date))
@@ -138,7 +145,6 @@ export default function HealthPage() {
       const dailyValue = dailyData.metrics[metricKey]?.score || 0
       const averageValue = chartData.reduce((sum, d) => sum + (d.metrics[metricKey]?.score || 0), 0) / chartData.length
 
-      // Extract only the notes part
       const fullNote = dailyData.metrics[metricKey]?.aggregated_note || '';
       const notesMatch = fullNote.match(/Notes: (.+)/);
       const notes = notesMatch ? notesMatch[1] : '';
@@ -148,25 +154,15 @@ export default function HealthPage() {
         value: dailyValue,
         average: averageValue,
         change: dailyValue > averageValue ? 'positive' : dailyValue < averageValue ? 'negative' : 'neutral',
-        aggregatedNote: notes  // This now contains only the notes part
+        aggregatedNote: notes
       }
     })
-  }
-
-  function isMetric(value: any): value is Metric {
-    return value && typeof value === 'object' && 'score' in value;
   }
 
   const handleUploadClick = () => {
     router.push('/quantifying/health/upload')
   }
 
-  /**
-   * Retrieves the daily summary for a specific date.
-   * @function
-   * @param {Date} date - The date for which to retrieve the summary.
-   * @returns {{summary: string, additionalNotes: string[]}} The summary and additional notes for the given date.
-   */
   const getDailySummary = (date: Date) => {
     if (!date || chartData.length === 0) return { summary: '', additionalNotes: [] }
 
@@ -180,41 +176,63 @@ export default function HealthPage() {
     }
   }
 
+  /**
+   * Calculates the progress based on selected metrics.
+   * @function
+   * @param {string[]} selectedMetrics - The currently selected metrics.
+   * @returns {number} The calculated progress percentage.
+   */
+  const calculateProgress = (selectedMetrics: string[]): number => {
+    return (selectedMetrics.length / metrics.length) * 100; // Calculate progress as a percentage
+  }
+
+  // Inside the HealthPage component, before rendering the BiofeedbackChart
+  console.log('Chart Data:', chartData);
+  console.log('Selected Metrics:', selectedMetrics);
+  console.log('Date Range:', dateRange);
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <AnimatedTitle>Quantifying Health</AnimatedTitle>
-      <Card className="mb-6">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <Button onClick={handleUploadClick} variant="outline">Upload Health Data</Button>
+      <h1 className="text-4xl font-bold text-black mb-6 text-center md:text-5xl">Quantifying Health</h1> {/* Centered title */}
+      <Card className="mb-6 bg-black text-gold"> {/* Updated card styling */}
+        <CardHeader className="flex flex-col md:flex-row items-center justify-between">
+          <Button onClick={handleUploadClick} variant="outline" className="hover:bg-gold mb-2 md:mb-0">Upload Health Data</Button> {/* Updated button styling */}
           <DateRangePicker 
             value={dateRange}
             onChange={handleDateRangeChange}
           />
         </CardHeader>
         <CardContent>
-          <BiofeedbackChart 
-            data={chartData}
-            selectedMetrics={selectedMetrics}
-            metrics={metrics}
-            onDataPointClick={handleDataPointClick}
-            dateRange={{ 
-              startDate: format(dateRange.startDate, 'yyyy-MM-dd'), 
-              endDate: format(dateRange.endDate, 'yyyy-MM-dd') 
-            }}
-          />
+          {chartData.length > 0 ? (
+            <BiofeedbackChart 
+              data={chartData}
+              selectedMetrics={selectedMetrics}
+              metrics={metrics}
+              onDataPointClick={handleDataPointClick}
+              dateRange={{ 
+                startDate: format(dateRange.startDate, 'yyyy-MM-dd'), 
+                endDate: format(dateRange.endDate, 'yyyy-MM-dd') 
+              }}
+            />
+          ) : (
+            <div>Loading chart data...</div>
+          )}
           <div className="flex flex-wrap gap-2 my-4">
             {metrics.map((metric) => (
-              <Button
-                key={metric.name}
-                variant={selectedMetrics.includes(metric.name) ? "default" : "outline"}
-                onClick={() => handleMetricToggle(metric.name)}
-                className="rounded-full"
-                style={{ backgroundColor: selectedMetrics.includes(metric.name) ? metric.color : undefined }}
-              >
-                {metric.name}
-              </Button>
+              <div key={metric.name} className="flex items-center">
+                <MetricIcon name={metric.name} />
+                <Button
+                  variant={selectedMetrics.includes(metric.name) ? "default" : "outline"}
+                  onClick={() => handleMetricToggle(metric.name)}
+                  className="rounded-full"
+                  style={{ backgroundColor: selectedMetrics.includes(metric.name) ? metric.color : undefined }}
+                >
+                  <span className="text-lg font-medium">{metric.name}</span> {/* Updated metric button text */}
+                </Button>
+              </div>
             ))}
           </div>
+          <ProgressBar value={calculateProgress(selectedMetrics)} />
         </CardContent>
       </Card>
 
