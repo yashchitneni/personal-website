@@ -103,7 +103,7 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
                     <ChevronDownIcon className="h-4 w-4 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start" sideOffset={8}>
+            <PopoverContent className="w-full max-w-md p-0 mx-auto" align="center" sideOffset={8}>
                 <div className="bg-white border rounded-md shadow-md">
                     <div className="space-y-2 p-3">
                         <div className="grid grid-cols-2 gap-2">

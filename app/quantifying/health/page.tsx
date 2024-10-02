@@ -238,16 +238,16 @@ export default function HealthPage() {
         </CardContent>
       </Card>
 
-        {dateRange && (
-          <div className="w-full overflow-x-auto"> {/* Allow horizontal scrolling if needed */}
-            <TimelineNavigation 
-              startDate={dateRange.startDate} 
-              endDate={dateRange.endDate} 
-              onDateSelect={handleTimelineDateSelect}
-              selectedDate={selectedDate}
-            />
-          </div>
-        )}
+      {/* Ensure TimelineNavigation takes full width */}
+      <div className="w-full overflow-x-auto"> {/* Added overflow-x-auto for horizontal scrolling */}
+        <TimelineNavigation 
+          startDate={dateRange.startDate} 
+          endDate={dateRange.endDate} 
+          onDateSelect={handleTimelineDateSelect}
+          selectedDate={selectedDate}
+          visibleDates={3} // Show only 5 dates at a time on mobile
+        />
+      </div>
 
       {/* {selectedDate && (
         <DailySummary 
