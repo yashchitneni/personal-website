@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Dot } from 'recharts';
 import { DailyAggregation, BiofeedbackChartProps } from '../types/metrics';
 import { differenceInDays } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -43,6 +43,16 @@ export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initia
 
   const renderChart = () => {
     const ChartComponent = isBarChart ? BarChart : AreaChart;
+
+    // Function to render custom dots only for non-zero values
+    const renderDot = (props: any) => {
+      const { cx, cy, payload, dataKey } = props;
+      const value = payload[dataKey];
+      if (value && value !== 0) {
+        return <Dot cx={cx} cy={cy} r={4} fill={props.stroke} />;
+      }
+      return undefined;  // Return undefined instead of null
+    };
 
     return (
       <ChartComponent data={data}>
@@ -87,6 +97,8 @@ export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initia
                 strokeWidth={hoveredMetric === metric.name ? 3 : 1}
                 animationBegin={0}
                 animationDuration={1500}
+                connectNulls={true}  // This will skip over null or undefined values
+                dot={(props: any) => renderDot(props) as React.ReactElement<SVGElement>}  // Custom dot renderer
               />
             )
           )
