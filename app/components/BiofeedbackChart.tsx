@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { DailyAggregation, BiofeedbackChartProps } from '../types/metrics';
 import { differenceInDays } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -49,7 +50,6 @@ export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initia
         <XAxis dataKey="date" />
         <YAxis domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]} />
         <Tooltip cursor={{ fill: 'transparent' }} />
-        <Legend />
         {metrics.map((metric) => (
           selectedMetrics.includes(metric.name) && (
             isBarChart ? (
@@ -65,6 +65,8 @@ export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initia
                     onDataPointClick && onDataPointClick(entry.payload);
                   }
                 }}
+                animationBegin={0}
+                animationDuration={1500}
               />
             ) : (
               <Area
@@ -83,6 +85,8 @@ export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initia
                   }
                 }}
                 strokeWidth={hoveredMetric === metric.name ? 3 : 1}
+                animationBegin={0}
+                animationDuration={1500}
               />
             )
           )
@@ -92,10 +96,19 @@ export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initia
   };
 
   return (
-    <div className="w-full h-[400px]"> {/* Removed red border, using Tailwind classes */}
-      <ResponsiveContainer width="100%" height="100%">
-        {data.length > 0 ? renderChart() : <div>No data available for the selected range.</div>}
-      </ResponsiveContainer>
-    </div>
+    <AnimatePresence mode="wait">
+      <motion.div 
+        key={isBarChart ? 'bar' : 'area'}
+        className="w-full h-[400px]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          {data.length > 0 ? renderChart() : <div>No data available for the selected range.</div>}
+        </ResponsiveContainer>
+      </motion.div>
+    </AnimatePresence>
   );
 }
