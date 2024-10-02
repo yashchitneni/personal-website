@@ -204,18 +204,20 @@ export default function HealthPage() {
         </CardHeader>
         <CardContent>
           {chartData.length > 0 ? (
-            <BiofeedbackChart 
-              data={chartData}
-              selectedMetrics={selectedMetrics}
-              metrics={metrics}
-              onDataPointClick={handleDataPointClick}
-              dateRange={{ 
-                startDate: format(dateRange.startDate, 'yyyy-MM-dd'), 
-                endDate: format(dateRange.endDate, 'yyyy-MM-dd') 
-              }}
-            />
+            <div className="w-full flex justify-center">
+              <BiofeedbackChart 
+                data={chartData}
+                selectedMetrics={selectedMetrics}
+                metrics={metrics}
+                onDataPointClick={handleDataPointClick}
+                dateRange={{ 
+                  startDate: format(dateRange.startDate, 'yyyy-MM-dd'), 
+                  endDate: format(dateRange.endDate, 'yyyy-MM-dd') 
+                }}
+              />
+            </div>
           ) : (
-            <div>Loading chart data...</div>
+            <div className="w-full text-center">Loading chart data...</div>
           )}
           <div className="flex flex-wrap gap-2 my-4">
             {metrics.map((metric) => (
@@ -236,14 +238,16 @@ export default function HealthPage() {
         </CardContent>
       </Card>
 
-      {dateRange && (
-        <TimelineNavigation 
-          startDate={dateRange.startDate} 
-          endDate={dateRange.endDate} 
-          onDateSelect={handleTimelineDateSelect}
-          selectedDate={selectedDate}
-        />
-      )}
+        {dateRange && (
+          <div className="w-full overflow-x-auto"> {/* Allow horizontal scrolling if needed */}
+            <TimelineNavigation 
+              startDate={dateRange.startDate} 
+              endDate={dateRange.endDate} 
+              onDateSelect={handleTimelineDateSelect}
+              selectedDate={selectedDate}
+            />
+          </div>
+        )}
 
       {/* {selectedDate && (
         <DailySummary 
