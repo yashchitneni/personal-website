@@ -1,0 +1,1 @@
+      <h1 className="text-4xl font-bold text-black mb-6 text-center md:text-5xl">Maximizing Health</h1> 

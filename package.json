@@ -58,6 +58,7 @@
     "react-day-picker": "^9.0.9",
     "react-dom": "^18.0.0",
     "recharts": "^2.12.7",
+    "rss-parser": "^3.13.0",
     "stripe": "^16.9.0",
     "tailwind-merge": "^2.5.2"
   },
