@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { insertBiofeedbackEntry } from '@/app/quantifying/health/upload/metrics';
+import { insertBiofeedbackEntry } from '@/app/maximizing/health/upload/metrics';
 import { format, toZonedTime } from 'date-fns-tz'; // You'll need to install this package
 
 const supabase = createClient(
@@ -20,10 +20,8 @@ const supabase = createClient(
  */
 export async function POST(request: NextRequest) {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-  console.log('Token:', token); // Log the token
 
   const { data: userData, error: authError } = await supabase.auth.getUser(token);
-  console.log('User Data:', userData); // Log user data
 
   if (authError || !userData) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -47,9 +45,6 @@ export async function POST(request: NextRequest) {
       time: time,
     };
 
-    // Log the data being inserted
-    console.log('Inserting data:', biofeedbackData);
-
     // Insert biofeedback entry
     const result = await insertBiofeedbackEntry(biofeedbackData);
 
@@ -59,7 +54,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: 'Data uploaded successfully' });
   } catch (error) {
-    console.error('Error uploading data:', error);
     return NextResponse.json({ error: 'Failed to upload data' }, { status: 500 });
   }
 }

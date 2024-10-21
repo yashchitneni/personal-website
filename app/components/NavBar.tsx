@@ -13,8 +13,8 @@ export function NavBar() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <Link href="/quantifying" className="text-gray-600 hover:text-gray-900">
-              Quantifying
+            <Link href="/maximizing" className="text-gray-600 hover:text-gray-900">
+              Maximizing
             </Link>
             <Link href="/writing" className="text-gray-600 hover:text-gray-900">
               Writing

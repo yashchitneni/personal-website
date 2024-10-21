@@ -37,7 +37,6 @@ export async function updateProfile(profileId: string, update: ProfileUpdate) {
     .single()
 
   if (error) {
-    console.error('Error updating profile:', error)
     return null
   }
 
@@ -60,7 +59,6 @@ export async function updateProfileByCustomerId(customerId: string, update: Prof
     .single()
 
   if (error) {
-    console.error('Error updating profile by customer ID:', error)
     return null
   }
 
@@ -82,7 +80,6 @@ export async function getProfileByCustomerId(customerId: string) {
     .single()
 
   if (error) {
-    console.error('Error fetching profile by customer ID:', error)
     return null
   }
 

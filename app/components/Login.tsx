@@ -22,7 +22,7 @@ export default function Login() {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        router.push('/quantifying/health/upload');
+        router.push('/maximizing/health/upload');
       }
       setIsLoading(false);
     };
@@ -57,7 +57,7 @@ export default function Login() {
     }
 
     if (data.user) {
-      router.push('/quantifying/health/upload');
+      router.push('/maximizing/health/upload');
     }
   };
 

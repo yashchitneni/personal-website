@@ -27,7 +27,6 @@ export const BiofeedbackChart: React.FC<BiofeedbackChartProps> = ({ data: initia
       .order('date', { ascending: true });
 
     if (error) {
-      console.error('Error fetching data:', error);
     } else {
       setData(result || []);
     }

@@ -5,8 +5,6 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 
 export async function insertBiofeedbackEntry(newData: Partial<BiofeedbackEntry>): Promise<boolean> {
     try {
-        // Log the incoming newData
-        console.log('Incoming Data:', newData);
 
         // Prepare the entry data
         const entryData: BiofeedbackEntry = {
@@ -28,12 +26,6 @@ export async function insertBiofeedbackEntry(newData: Partial<BiofeedbackEntry>)
             summary: newData.summary || '',
         };
 
-        // Log the prepared entryData
-        console.log('Prepared Entry Data:', entryData);
-
-        // Log the metrics object specifically
-        console.log('Metrics Object:', entryData.metrics);
-
         // Insert the data into the database
         const { data, error } = await supabase
             .from('biofeedback')
@@ -42,7 +34,6 @@ export async function insertBiofeedbackEntry(newData: Partial<BiofeedbackEntry>)
             .single();
 
         if (error) {
-            console.error('Error inserting biofeedback entry:', error);
             throw new Error(`Insert Error: ${error.message}`); // Propagate the error
         }
 
@@ -51,7 +42,6 @@ export async function insertBiofeedbackEntry(newData: Partial<BiofeedbackEntry>)
 
         return true;
     } catch (error) {
-        console.error('Error in insertBiofeedbackEntry:', error);
         throw false; // Propagate the error
     }
 }
@@ -117,7 +107,6 @@ export async function aggregateDailyEntries(date: string): Promise<DailyAggregat
             .single();
 
         if (fetchError && fetchError.code !== 'PGRST116') {
-            console.error('Error fetching daily aggregation:', fetchError);
             throw new Error(`Fetch Error: ${fetchError.message}`);
         }
 
@@ -147,7 +136,6 @@ export async function aggregateDailyEntries(date: string): Promise<DailyAggregat
             .eq('date', date);
 
         if (fetchErrorEntries) {
-            console.error('Error fetching biofeedback entries:', fetchErrorEntries);
             throw new Error(`Fetch Error: ${fetchErrorEntries.message}`);
         }
 
@@ -158,14 +146,9 @@ export async function aggregateDailyEntries(date: string): Promise<DailyAggregat
 
         // Aggregate metrics from all entries
         entries.forEach(entry => {
-            console.log(`Processing entry ID: ${entry.id} for date: ${date}`);
-            console.log('Entry metrics:', entry.metrics);
-
             Object.entries(entry.metrics).forEach(([key, metric]) => {
                 const typedKey = key as keyof typeof aggregation.metrics;
                 const typedMetric = metric as Metric;
-
-                console.log(`Processing metric: ${typedKey}, Score: ${typedMetric.score}, Notes: ${typedMetric.notes}`);
 
                 if (typedMetric && typedMetric.score > 0) {
                     metricCounts[typedKey] = (metricCounts[typedKey] || 0) + 1;
@@ -188,9 +171,6 @@ export async function aggregateDailyEntries(date: string): Promise<DailyAggregat
             aggregation.summary += (entry.summary || '') + ' ';
         });
 
-        console.log('Metric counts:', metricCounts);
-        console.log('Metric totals:', metricTotals);
-
         // Calculate averages and combine unique notes
         for (const key in aggregation.metrics) {
             const typedKey = key as keyof typeof aggregation.metrics;
@@ -207,21 +187,17 @@ export async function aggregateDailyEntries(date: string): Promise<DailyAggregat
 
         aggregation.summary = aggregation.summary.trim();
 
-        console.log('Final aggregated results:', aggregation);
-
         // Upsert the aggregation
         const { error: upsertError } = await supabase
             .from('daily_aggregations')
             .upsert(aggregation);
 
         if (upsertError) {
-            console.error('Error upserting daily aggregation:', upsertError);
             throw new Error(`Upsert Error: ${upsertError.message}`);
         }
 
         return aggregation;
     } catch (error) {
-        console.error('Error in aggregateDailyEntries:', error);
         throw error;
     }
 }
@@ -236,7 +212,6 @@ export async function fetchDailyAggregations(userId: string, startDate: string, 
         .order('date', { ascending: true });
 
     if (error) {
-        console.error('Error fetching daily aggregations:', error);
         return null;
     }
 

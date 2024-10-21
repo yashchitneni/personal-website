@@ -34,7 +34,6 @@ export default function BlogPostPage() {
           setError('Post not found');
         }
       } catch (err) {
-        console.error('Error fetching post:', err);
         setError('Failed to fetch post');
       } finally {
         setIsLoading(false);
