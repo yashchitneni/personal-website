@@ -14,7 +14,7 @@ export default function BlogPage() {
         /> */}
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white text-center">
-            My Writing Journey
+            Writing
           </h1>
         </div>
       </div>
