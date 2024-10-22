@@ -54,9 +54,7 @@ export default function HealthPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   /**
-   * Fetches biofeedback data based on the selected date range.
-   * @function
-   * @async
+   * Updates the selected date when the date range changes.
    */
   useEffect(() => {
     if (dateRange.startDate) {
@@ -66,8 +64,6 @@ export default function HealthPage() {
 
   /**
    * Fetches biofeedback data based on the selected date range.
-   * @function
-   * @async
    */
   useEffect(() => {
     const fetchData = async () => {
@@ -81,6 +77,7 @@ export default function HealthPage() {
       if (error) {
         console.error('Error fetching data:', error)
       } else {
+        console.log('Data fetched from database:', data) // Add this line
         setChartData(data || [])
       }
     }
