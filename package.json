@@ -57,6 +57,7 @@
     "react-chartjs-2": "^5.2.0",
     "react-day-picker": "^9.0.9",
     "react-dom": "^18.0.0",
+    "react-twitter-embed": "^4.0.4",
     "recharts": "^2.12.7",
     "rss-parser": "^3.13.0",
     "stripe": "^16.9.0",
