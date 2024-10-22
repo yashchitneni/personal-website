@@ -22,6 +22,10 @@ const createSlug = (title: string) => {
     .replace(/ +/g, '-');
 };
 
+const removeSubscriptionWidget = (content: string) => {
+  return content.replace(/<div class="subscription-widget-wrap-editor".*?<\/div><\/div>/s, '');
+};
+
 async function getPost(slug: string): Promise<Post | null> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rss-feed`);
   if (!res.ok) {
@@ -29,40 +33,43 @@ async function getPost(slug: string): Promise<Post | null> {
   }
   const data = await res.json();
   const post = data.posts.find((post: Post) => createSlug(post.title) === slug);
+  
+  if (post) {
+    post.content = removeSubscriptionWidget(post.content);
+  }
+  
   return post || null;
 }
 
 const processTweetEmbeds = (content: string) => {
   console.log("Raw content:", content); // Log raw content for debugging
 
-  // Look for Twitter URLs in the content
-  const tweetRegex = /https?:\/\/twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)/g;
+  // Look for the entire tweet embed structure
+  const tweetRegex = /<div class="tweet".*?data-attrs="(.*?)".*?<\/div>/gs;
   const parts = [];
   let lastIndex = 0;
-  const processedTweetIds = new Set();
 
   while (true) {
     const match = tweetRegex.exec(content);
     if (match === null) break;
 
-    const tweetId = match[3];
-    if (!processedTweetIds.has(tweetId)) {
-      if (match.index > lastIndex) {
-        parts.push({ type: 'text', content: content.slice(lastIndex, match.index) });
-      }
-      parts.push({ type: 'tweet', id: tweetId });
-      processedTweetIds.add(tweetId);
-      lastIndex = match.index + match[0].length;
+    if (match.index > lastIndex) {
+      parts.push({ type: 'text', content: content.slice(lastIndex, match.index) });
     }
+
+    const tweetDataString = match[1].replace(/&quot;/g, '"');
+    const tweetData = JSON.parse(tweetDataString);
+    const tweetId = tweetData.url.split('/').pop();
+
+    parts.push({ type: 'tweet', id: tweetId });
+    lastIndex = match.index + match[0].length;
   }
 
   // Add any remaining content after the last tweet
   if (lastIndex < content.length) {
     const remainingContent = content.slice(lastIndex);
-    // Remove the subscription widget if present
-    const cleanedContent = remainingContent.replace(/<div class="subscription-widget-wrap-editor".*?<\/div><\/div>/s, '');
-    if (cleanedContent.trim()) {
-      parts.push({ type: 'text', content: cleanedContent });
+    if (remainingContent.trim()) {
+      parts.push({ type: 'text', content: remainingContent });
     }
   }
 
@@ -99,7 +106,9 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
             part.type === 'text' ? (
               <div key={index} dangerouslySetInnerHTML={{ __html: part.content || '' }} />
             ) : (
-              <TwitterEmbed key={part.id} tweetId={part.id || ''} />
+              <div key={part.id} className="my-4">
+                <TwitterEmbed tweetId={part.id || ''} />
+              </div>
             )
           )}
         </div>
