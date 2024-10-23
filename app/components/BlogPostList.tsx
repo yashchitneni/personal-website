@@ -50,7 +50,7 @@ export default function BlogPostList() {
     <div className="container mx-auto px-4 py-12">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {currentPosts.map((post: Post) => (
-          <Link href={`/writing/${createSlug(post.title)}`} key={post.link} className="block group">
+          <Link href={`/dictating/${createSlug(post.title)}`} key={post.link} className="block group">
             <div className="bg-white rounded-lg overflow-hidden shadow-lg transition-transform duration-200 ease-in-out group-hover:scale-105 h-full flex flex-col">
               {post.imageUrl && (
                 <div className="relative h-48 w-full">
