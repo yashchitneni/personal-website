@@ -27,18 +27,34 @@ const createSlug = (title: string) => {
 
 export default function BlogPostList() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 9;
 
   useEffect(() => {
     async function fetchPosts() {
-      const response = await fetch('/api/rss-feed');
-      const data = await response.json();
-      setPosts(data.posts);
+      try {
+        setLoading(true);
+        const response = await fetch('/api/rss-feed');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setPosts(data.posts);
+        setLoading(false);
+      } catch (e) {
+        console.error("Fetching posts failed:", e);
+        setError("Failed to load posts. Please try again later.");
+        setLoading(false);
+      }
     }
 
     fetchPosts();
   }, []);
+
+  if (loading) return <div>Loading posts...</div>;
+  if (error) return <div>{error}</div>;
 
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;

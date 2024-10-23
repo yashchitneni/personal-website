@@ -27,7 +27,7 @@ const removeSubscriptionWidget = (content: string) => {
 };
 
 async function getPost(slug: string): Promise<Post | null> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rss-feed`);
+  const res = await fetch('/api/rss-feed');
   if (!res.ok) {
     throw new Error('Failed to fetch posts');
   }
