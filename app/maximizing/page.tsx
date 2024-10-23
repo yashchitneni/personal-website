@@ -8,9 +8,9 @@ export default function Maximizing() {
         <Link href="/maximizing/health" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
           Health
         </Link>
-        <Link href="/maximizing/life" className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+        {/* <Link href="/maximizing/life" className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
           Life
-        </Link>
+        </Link> */}
       </div>
     </div>
   );
