@@ -10,7 +10,7 @@ import { Card, CardHeader, CardContent } from '../../components/ui/Card'
 import { TimelineNavigation } from "../../components/TimelineNavigation"
 import { DailyInsights } from "../../components/DailyInsights"
 import { createClient } from '@supabase/supabase-js'
-import { format, parseISO, startOfDay } from 'date-fns'
+import { format, parseISO, startOfDay, subDays } from 'date-fns'
 import { DateRange } from '@/app/types/date-range'
 import { DailyAggregation, Metric } from '@/app/types/metrics'
 import { Insight } from '@/app/types/insights'
@@ -46,11 +46,11 @@ export default function HealthPage() {
   const router = useRouter()
   const [selectedMetrics, setSelectedMetrics] = useState(metrics.slice(0, 2).map(m => m.name))
   const [dateRange, setDateRange] = useState<DateRange>({
-    startDate: new Date(), // Set to a week ago
+    startDate: subDays(new Date(), 6), // Set to a week ago
     endDate: new Date() // Set to today
   })
   const [chartData, setChartData] = useState<DailyAggregation[]>([])
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date()) // Set to today
 
   /**
    * Updates the selected date when the date range changes.
@@ -76,7 +76,7 @@ export default function HealthPage() {
       if (error) {
         console.error('Error fetching data:', error)
       } else {
-        console.log('Data fetched from database:', data) // Add this line
+        console.log('Data fetched from database:', data)
         setChartData(data || [])
       }
     }
