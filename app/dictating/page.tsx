@@ -18,16 +18,18 @@ export default function BlogPage() {
           </h1>
         </div>
       </div>
-      <div className="max-w-4xl mx-auto my-8">
-        <iframe 
-          src="https://yashchitneni.substack.com/embed" 
-          width="480" 
-          height="320" 
-          style={{ border: '1px solid #EEE', background: '#F3F4F6' }}
-          frameBorder="0" 
-          scrolling="no"
-          className="mx-auto"
-        ></iframe>
+      <div className="max-w-4xl mx-auto my-8 px-4">
+        <div className="w-full max-w-lg mx-auto">
+          <iframe 
+            src="https://yashchitneni.substack.com/embed" 
+            width="480" 
+            height="320" 
+            style={{ border: '1px solid #EEE', background: '#F3F4F6' }}
+            frameBorder="0" 
+            scrolling="no"
+            className="w-full"
+          ></iframe>
+        </div>
       </div>
       <BlogPostList />
     </div>

@@ -100,15 +100,17 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
     <div className="container mx-auto px-4 py-8">
       <div className="w-full max-w-4xl mx-auto">
         <div className="mb-8">
-          <iframe 
-            src="https://yashchitneni.substack.com/embed" 
-            width="480" 
-            height="320" 
-            style={{ border: '1px solid #EEE', background: '#F3F4F6' }}
-            frameBorder="0" 
-            scrolling="no"
-            className="mx-auto"
-          ></iframe>
+          <div className="w-full max-w-lg mx-auto">
+            <iframe 
+              src="https://yashchitneni.substack.com/embed" 
+              width="480" 
+              height="320" 
+              style={{ border: '1px solid #EEE', background: '#F3F4F6' }}
+              frameBorder="0" 
+              scrolling="no"
+              className="w-full"
+            ></iframe>
+          </div>
         </div>
         <h1 className="text-4xl font-bold mb-4 text-center">{post.title}</h1>
         <div className="prose max-w-none">

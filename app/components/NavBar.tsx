@@ -1,15 +1,36 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  const handleLinkClick = (href: string) => {
+    setIsMenuOpen(false);
+    router.push(href);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <nav className="bg-white shadow-md">
@@ -48,17 +69,17 @@ export function NavBar() {
       </div>
 
       {/* Mobile menu, show/hide based on menu state */}
-      <div className={`md:hidden ${isMenuOpen ? 'block' : 'hidden'}`}>
+      <div ref={menuRef} className={`md:hidden ${isMenuOpen ? 'block' : 'hidden'}`}>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <Link href="/maximizing" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+          <button onClick={() => handleLinkClick('/maximizing')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
             Maximizing
-          </Link>
-          <Link href="/dictating" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+          </button>
+          <button onClick={() => handleLinkClick('/dictating')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
             Dictating
-          </Link>
-          <Link href="/book-ai-session" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+          </button>
+          <button onClick={() => handleLinkClick('/book-ai-session')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
             Book an AI Session
-          </Link>
+          </button>
         </div>
       </div>
     </nav>
