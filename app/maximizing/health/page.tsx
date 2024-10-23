@@ -14,9 +14,8 @@ import { format, parseISO, startOfDay } from 'date-fns'
 import { DateRange } from '@/app/types/date-range'
 import { DailyAggregation, Metric } from '@/app/types/metrics'
 import { Insight } from '@/app/types/insights'
-import ProgressBar from '../../components/ui/progressBar' // New component for progress visualization
-import MetricIcon from '../../components/ui/metricIcon' // New component for metric icons
-// import { EnhancedChart } from '../../components/EnhancedChart';
+import ProgressBar from '../../components/ui/progressBar' 
+import MetricIcon from '../../components/ui/metricIcon' 
 
 // Initialize Supabase client
 const supabase = createClient(

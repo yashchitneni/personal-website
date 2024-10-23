@@ -19,6 +19,7 @@ export function NavBar() {
             <Link href="/writing" className="text-gray-600 hover:text-gray-900">
               Writing
             </Link>
+            <Link href="/book-ai-session" className="text-gray-600 hover:text-gray-900">Book an AI Session</Link>
           </div>
         </div>
       </div>
