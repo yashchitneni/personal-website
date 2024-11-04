@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { RefreshCw } from 'lucide-react';
 
 interface Post {
   title: string;
@@ -30,28 +31,41 @@ export default function BlogPostList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const postsPerPage = 9;
 
-  useEffect(() => {
-    async function fetchPosts() {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/rss-feed');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setPosts(data.posts);
-        setLoading(false);
-      } catch (e) {
-        console.error("Fetching posts failed:", e);
-        setError("Failed to load posts. Please try again later.");
-        setLoading(false);
+  const fetchPosts = useCallback(async (showRefreshState = false) => {
+    try {
+      if (showRefreshState) setIsRefreshing(true);
+      const response = await fetch('/api/rss-feed');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const data = await response.json();
+      setPosts(data.posts);
+    } catch (e) {
+      console.error("Fetching posts failed:", e);
+      setError("Failed to load posts. Please try again later.");
+    } finally {
+      setLoading(false);
+      if (showRefreshState) setIsRefreshing(false);
     }
-
-    fetchPosts();
   }, []);
+
+  // Initial load
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
+
+  // Polling effect - checks every 5 minutes
+  useEffect(() => {
+    const pollInterval = 5 * 60 * 1000; // 5 minutes
+    const interval = setInterval(() => {
+      fetchPosts();
+    }, pollInterval);
+
+    return () => clearInterval(interval);
+  }, [fetchPosts]);
 
   if (loading) return <div>Loading posts...</div>;
   if (error) return <div>{error}</div>;
@@ -64,6 +78,17 @@ export default function BlogPostList() {
 
   return (
     <div className="container mx-auto px-4 py-12">
+      <div className="flex justify-end mb-6">
+        <button
+          onClick={() => fetchPosts(true)}
+          disabled={isRefreshing}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Refreshing...' : 'Refresh Posts'}
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {currentPosts.map((post: Post) => (
           <Link href={`/dictating/${createSlug(post.title)}`} key={post.link} className="block group">

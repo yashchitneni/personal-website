@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import Parser from 'rss-parser';
 
+export const revalidate = 0; // Disable caching for this route
+
 export async function GET() {
   const parser = new Parser({
     customFields: {
@@ -13,7 +15,8 @@ export async function GET() {
   });
 
   try {
-    const feed = await parser.parseURL('https://yashchitneni.substack.com/feed');
+    // Add cache-busting query parameter to prevent caching
+    const feed = await parser.parseURL(`https://yashchitneni.substack.com/feed?t=${Date.now()}`);
     
     const posts = feed.items.map(item => {
       const content = item['content:encoded'] as string;
@@ -30,7 +33,11 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ posts });
+    return NextResponse.json({ posts }, {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      },
+    });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch RSS feed' }, { status: 500 });
   }
