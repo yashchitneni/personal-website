@@ -13,6 +13,13 @@ const config: Config = {
       },
       gridTemplateColumns: {
         '31': 'repeat(31, minmax(0, 1fr))',
+        '7': 'repeat(7, minmax(0, 1fr))',
+      },
+      aspectRatio: {
+        'polaroid': '0.8',
+      },
+      maxWidth: {
+        '7xl': '80rem',
       },
     },
   },

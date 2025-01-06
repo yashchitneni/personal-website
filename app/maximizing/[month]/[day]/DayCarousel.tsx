@@ -1,17 +1,13 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { DayImageUploader } from './DayImageUploader';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { format, addDays, subDays } from 'date-fns';
 import { getOrdinalSuffix } from '@/app/utils/date';
-
-const months = [
-  'january', 'february', 'march', 'april', 'may', 'june',
-  'july', 'august', 'september', 'october', 'november', 'december'
-];
+import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { MemoryScene } from '@/app/components/three/scene/MemoryScene';
 
 interface DailyEntry {
   image_url: string | null;
@@ -42,29 +38,12 @@ export function DayCarousel({ initialDate, initialEntry }: CarouselProps) {
   const router = useRouter();
   const supabase = createClientComponentClient();
   const [session, setSession] = useState<Session | null>(null);
-  const [entry, setEntry] = useState<DailyEntry | null>(initialEntry);
+  const [entries, setEntries] = useState<{ [key: string]: DailyEntry | null }>({});
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const date = initialDate;
-  const formattedDate = date.toISOString().split('T')[0];
-  const isToday = new Date().toDateString() === date.toDateString();
-
-  // Calculate adjacent dates while preserving the year
-  const prevDate = new Date(date);
-  prevDate.setDate(date.getDate() - 1);
-  if (prevDate.getFullYear() !== date.getFullYear()) {
-    prevDate.setFullYear(date.getFullYear());
-    prevDate.setMonth(11);
-    prevDate.setDate(31);
-  }
-
-  const nextDate = new Date(date);
-  nextDate.setDate(date.getDate() + 1);
-  if (nextDate.getFullYear() !== date.getFullYear()) {
-    nextDate.setFullYear(date.getFullYear());
-    nextDate.setMonth(0);
-    nextDate.setDate(1);
-  }
+  const prevDate = subDays(date, 1);
+  const nextDate = addDays(date, 1);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,112 +51,119 @@ export function DayCarousel({ initialDate, initialEntry }: CarouselProps) {
       setSession(session);
 
       if (session) {
+        // Fetch entries for current, previous, and next day
+        const dates = [
+          format(prevDate, 'yyyy-MM-dd'),
+          format(date, 'yyyy-MM-dd'),
+          format(nextDate, 'yyyy-MM-dd')
+        ];
+
         const { data } = await supabase
           .from('daily_entries')
           .select('image_url, user_id, date')
-          .eq('date', formattedDate)
-          .eq('user_id', session.user.id)
-          .single();
-        setEntry(data as DailyEntry | null);
+          .in('date', dates)
+          .eq('user_id', session.user.id);
+
+        const entriesMap = (data || []).reduce((acc, entry) => {
+          acc[entry.date] = entry;
+          return acc;
+        }, {} as { [key: string]: DailyEntry });
+
+        setEntries(entriesMap);
       }
     };
     fetchData();
-  }, [formattedDate, supabase]);
+  }, [date, supabase]);
 
   const navigateToDate = (targetDate: Date) => {
+    if (isTransitioning) return;
+    
     setIsTransitioning(true);
-    const month = months[targetDate.getMonth()];
-    const day = targetDate.getDate().toString() + getOrdinalSuffix(targetDate.getDate());
-    router.push(`/maximizing/${month}/${day}`);
+    const monthName = format(targetDate, 'MMMM').toLowerCase();
+    const day = getOrdinalSuffix(targetDate.getDate());
+    router.push(`/maximizing/${monthName}/${day}`);
+    
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 500);
   };
 
+  const currentEntry = entries[format(date, 'yyyy-MM-dd')] || initialEntry;
+  const prevEntry = entries[format(prevDate, 'yyyy-MM-dd')];
+  const nextEntry = entries[format(nextDate, 'yyyy-MM-dd')];
+
   return (
-    <div className="min-h-screen bg-gray-50 overflow-hidden">
-      <div className="relative w-full h-screen flex flex-col items-center pt-12">
-        {/* Date Header */}
-        <motion.div 
-          className="text-center mb-8"
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <span className="text-sm font-medium text-gray-500 tracking-wider">
-            {date.getFullYear()}
-          </span>
-          <div className="flex items-baseline justify-center gap-3 mb-1">
-            <h1 className="font-serif text-6xl text-gray-900 tracking-tight leading-none">
-              {date.getDate()}
-            </h1>
-            <p className="font-light text-2xl text-gray-600 tracking-widest uppercase">
-              {months[date.getMonth()].charAt(0).toUpperCase() + months[date.getMonth()].slice(1)}
-            </p>
-          </div>
-          {isToday && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-              Today
-            </span>
-          )}
-        </motion.div>
+    <div className="min-h-screen">
+      {/* Add MemoryScene as background */}
+      <MemoryScene imageUrl={currentEntry?.image_url} />
 
-        {/* Polaroid Carousel */}
-        <div className="relative w-full flex items-center justify-center mb-8">
-          <motion.div 
-            className="absolute w-[250px] left-[-30px] opacity-20 cursor-pointer"
-            style={{ 
-              perspective: 1000,
-              rotateY: '15deg',
-              filter: 'blur(1px)'
+      {/* Header */}
+      <div className="sticky top-0 bg-white/80 backdrop-blur-sm border-b z-20">
+        <div className="container max-w-lg mx-auto px-4 py-4">
+          <button
+            onClick={() => {
+              const quarter = Math.floor(date.getMonth() / 3) + 1;
+              router.push(`/maximizing/quarter/${quarter}`);
             }}
-            whileHover={{ 
-              opacity: 0.4,
-              filter: 'blur(0px)',
-              x: 10,
-              transition: { duration: 0.2 }
-            }}
+            className="text-gray-600 hover:text-gray-900 mb-4 flex items-center gap-2"
+          >
+            ← Back to Q{Math.floor(date.getMonth() / 3) + 1}
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container max-w-lg mx-auto px-4 py-6 relative z-10">
+        {/* Navigation Pills */}
+        <div className="flex justify-between items-center mb-6">
+          <button
             onClick={() => !isTransitioning && navigateToDate(prevDate)}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-full
+              ${prevEntry?.image_url ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}
+              transition-colors
+            `}
           >
-            <DayCard date={prevDate} entry={null} isPreview />
-          </motion.div>
-
-          <motion.div 
-            className="w-[300px] z-10"
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            onDragEnd={(e, info) => {
-              if (isTransitioning) return;
-              if (info.offset.x < -100) navigateToDate(nextDate);
-              if (info.offset.x > 100) navigateToDate(prevDate);
-            }}
-            dragElastic={0.2}
-            whileDrag={{ scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            layout
-          >
-            <DayCard date={date} entry={entry} isToday={isToday} session={session} />
-          </motion.div>
-
-          <motion.div 
-            className="absolute w-[250px] right-[-30px] opacity-20 cursor-pointer"
-            style={{ 
-              perspective: 1000,
-              rotateY: '-15deg',
-              filter: 'blur(1px)'
-            }}
-            whileHover={{ 
-              opacity: 0.4,
-              filter: 'blur(0px)',
-              x: -10,
-              transition: { duration: 0.2 }
-            }}
+            ← {format(prevDate, 'MMM d')}
+            {prevEntry?.image_url && <span className="w-2 h-2 rounded-full bg-blue-400" />}
+          </button>
+          <button
             onClick={() => !isTransitioning && navigateToDate(nextDate)}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-full
+              ${nextEntry?.image_url ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'}
+              transition-colors
+            `}
           >
-            <DayCard date={nextDate} entry={null} isPreview />
-          </motion.div>
+            {format(nextDate, 'MMM d')} →
+            {nextEntry?.image_url && <span className="w-2 h-2 rounded-full bg-blue-400" />}
+          </button>
         </div>
 
-        {/* Space for Additional Content */}
+        {/* Current Day Card */}
+        <motion.div
+          className="w-full mb-8"
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          onDragEnd={(e, info) => {
+            if (isTransitioning) return;
+            if (info.offset.x < -100) navigateToDate(nextDate);
+            if (info.offset.x > 100) navigateToDate(prevDate);
+          }}
+          dragElastic={0.2}
+          whileDrag={{ scale: 0.98 }}
+          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+        >
+          <DayCard 
+            date={date} 
+            entry={currentEntry} 
+            isToday={format(new Date(), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')} 
+            session={session}
+          />
+        </motion.div>
+
+        {/* Additional Content */}
         <motion.div 
-          className="w-full max-w-2xl px-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.3 }}
@@ -194,53 +180,146 @@ export function DayCarousel({ initialDate, initialEntry }: CarouselProps) {
 }
 
 function DayCard({ date, entry, isPreview = false, isToday = false, session = null }: DayCardProps) {
-  const monthName = months[date.getMonth()].charAt(0).toUpperCase() + months[date.getMonth()].slice(1);
-  const day = date.getDate();
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setMousePosition({ x, y });
+  };
+
+  const handleMouseLeave = () => {
+    setMousePosition({ x: 0, y: 0 });
+  };
 
   return (
     <motion.div 
-      className={`gallery-frame bg-white rounded-sm shadow-2xl h-full overflow-hidden
-        ${isPreview ? 'pointer-events-none' : ''}`}
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="relative mx-auto"
       style={{
-        aspectRatio: '54/86',
-        padding: '0.29rem 0.16rem 0.62rem 0.16rem', // Matching Instax Mini borders
+        width: 'min(400px, 100%)',
+        perspective: 1000
       }}
-      initial={isPreview ? {} : { scale: 0.95, opacity: 0 }}
-      animate={isPreview ? {} : { scale: 1, opacity: 1 }}
+      initial={{ scale: 0.95, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
-      <div className="relative h-full w-full bg-gray-50">
-        {entry?.image_url ? (
-          <div className="relative w-full h-full">
-            <Image
-              src={entry.image_url}
-              alt={`Memory from ${monthName} ${day}, ${date.getFullYear()}`}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              priority
-              quality={100}
-              unoptimized
-            />
-          </div>
-        ) : !isPreview && (
-          <div className="h-full w-full flex flex-col items-center justify-center">
-            {session && isToday ? (
-              <DayImageUploader date={date} />
+      {/* Floating Animation Container */}
+      <motion.div
+        animate={{
+          rotateX: mousePosition.y * 10,
+          rotateY: mousePosition.x * 10,
+          y: [0, 5, 0],
+        }}
+        transition={{
+          rotateX: { type: "spring", stiffness: 200, damping: 20 },
+          rotateY: { type: "spring", stiffness: 200, damping: 20 },
+          y: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+        }}
+        className="relative"
+      >
+        {/* Polaroid Frame */}
+        <motion.div 
+          className="bg-white rounded-lg shadow-2xl overflow-hidden"
+          style={{
+            aspectRatio: '54/86',
+          }}
+          whileHover={{ scale: 1.02 }}
+          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+        >
+          {/* Date Header */}
+          <motion.div 
+            className="absolute top-0 left-0 right-0 z-10 p-4"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="text-center">
+              <motion.div 
+                className="text-3xl font-light tracking-wide text-white mix-blend-difference"
+                style={{ textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+              >
+                {format(date, 'MMMM d')}
+              </motion.div>
+              <motion.div 
+                className="text-sm text-white mix-blend-difference opacity-80"
+                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}
+              >
+                {format(date, 'yyyy')}
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Image or Empty State */}
+          <div className="relative h-full w-full bg-gradient-to-b from-gray-50 to-gray-100">
+            {entry?.image_url ? (
+              <motion.div 
+                className="relative w-full h-full"
+                initial={{ scale: 1.1, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Image
+                  src={entry.image_url}
+                  alt={`Memory from ${format(date, 'MMMM d, yyyy')}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority
+                  quality={100}
+                  unoptimized
+                />
+                {/* Subtle Overlay for Text Contrast */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10" />
+              </motion.div>
             ) : (
-              <div className="p-4 text-center">
-                <div className="inline-block p-2 rounded-full bg-gray-100">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
-                    <span className="text-gray-400 text-sm">
-                      {isToday ? "Add" : date > new Date() ? "Soon" : "Empty"}
-                    </span>
-                  </div>
-                </div>
+              <div className="h-full w-full flex flex-col items-center justify-center">
+                {session && isToday ? (
+                  <motion.div 
+                    className="text-center"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <div className="inline-block p-4 rounded-full bg-blue-50/80 backdrop-blur-sm">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center">
+                        <span className="text-blue-500 text-lg">Add</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    className="text-center"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <div className="inline-block p-4 rounded-full bg-gray-100/80 backdrop-blur-sm">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
+                        <span className="text-gray-400 text-lg">
+                          {isToday ? "Add" : date > new Date() ? "Soon" : "Empty"}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </div>
             )}
           </div>
-        )}
-      </div>
+        </motion.div>
+
+        {/* Shadow */}
+        <div 
+          className="absolute -inset-4 bg-black/10 -z-10 rounded-xl blur-xl opacity-50"
+          style={{
+            transform: `rotateX(${mousePosition.y * 10}deg) rotateY(${mousePosition.x * 10}deg)`,
+          }}
+        />
+      </motion.div>
     </motion.div>
   );
 } 

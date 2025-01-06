@@ -15,5 +15,12 @@ export function getOrdinalSuffix(day: number): string {
 }
 
 export function getDayFromOrdinal(ordinal: string): number {
-  return parseInt(ordinal.replace(/(st|nd|rd|th)$/, ''));
+  // Handle both formats: "1st" and "1"
+  const match = ordinal.match(/^(\d+)(st|nd|rd|th)?$/);
+  if (!match) return NaN;
+  
+  const day = parseInt(match[1], 10);
+  if (isNaN(day) || day < 1 || day > 31) return NaN;
+  
+  return day;
 } 

@@ -25,8 +25,16 @@ export default async function DayPage({ params }: PageProps) {
     notFound();
   }
 
+  // Create date and validate it's a real date
   const currentYear = new Date().getFullYear();
   const date = new Date(currentYear, monthIndex, day);
+  
+  // Check if the date is valid and the day matches
+  // This catches invalid dates like February 31st
+  if (date.getMonth() !== monthIndex || date.getDate() !== day) {
+    notFound();
+  }
+
   const formattedDate = date.toISOString().split('T')[0];
 
   // Get initial entry data
@@ -39,22 +47,4 @@ export default async function DayPage({ params }: PageProps) {
     .single() : { data: null };
 
   return <DayCarousel initialDate={date} initialEntry={entry} />;
-}
-
-export function generateStaticParams() {
-  const currentYear = new Date().getFullYear();
-  const params: { month: string; day: string; }[] = [];
-  
-  months.forEach((month, monthIndex) => {
-    const daysInMonth = new Date(currentYear, monthIndex + 1, 0).getDate();
-    for (let day = 1; day <= daysInMonth; day++) {
-      const ordinalDay = day.toString();
-      params.push({
-        month,
-        day: ordinalDay,
-      });
-    }
-  });
-  
-  return params;
 } 
