@@ -1,10 +1,11 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { getOrdinalSuffix } from '@/app/utils/date';
 
 interface QuarterViewProps {
   year: number;
@@ -49,19 +50,28 @@ export function QuarterView({ year, quarterIndex, entries = [] }: QuarterViewPro
   const [selectedMonth, setSelectedMonth] = useState<number>(quarterIndex * 3);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
-  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   
+  // Check if user has seen onboarding
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem('hasSeenQuarterOnboarding');
+    if (!hasSeenOnboarding) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
   const handleBack = () => {
     router.push('/maximizing');
   };
 
-  const navigateToDay = (monthName: string, day: number) => {
-    router.push(`/maximizing/${monthName.toLowerCase()}/${day}`);
+  const navigateToDay = (monthName: string, date: string) => {
+    const day = parseISO(date).getDate();
+    router.push(`/maximizing/${monthName.toLowerCase()}/${getOrdinalSuffix(day)}`);
   };
 
   const getMonthMemories = (monthIndex: number) => {
     return entries.filter(entry => {
-      const entryDate = new Date(entry.date);
+      const entryDate = parseISO(entry.date);
       return entryDate.getMonth() === monthIndex && entry.image_url;
     });
   };
@@ -78,11 +88,13 @@ export function QuarterView({ year, quarterIndex, entries = [] }: QuarterViewPro
       setOnboardingStep(prev => prev + 1);
     } else {
       setShowOnboarding(false);
+      localStorage.setItem('hasSeenQuarterOnboarding', 'true');
     }
   };
 
   const skipOnboarding = () => {
     setShowOnboarding(false);
+    localStorage.setItem('hasSeenQuarterOnboarding', 'true');
   };
 
   return (
@@ -148,8 +160,7 @@ export function QuarterView({ year, quarterIndex, entries = [] }: QuarterViewPro
           >
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {getMonthMemories(selectedMonth).map((memory, index) => {
-                const date = new Date(memory.date);
-                const day = date.getDate();
+                const date = parseISO(memory.date);
                 
                 return (
                   <motion.div
@@ -158,7 +169,7 @@ export function QuarterView({ year, quarterIndex, entries = [] }: QuarterViewPro
                     id={index === 0 ? 'memory-card' : undefined}
                     className="group relative aspect-square cursor-pointer"
                     whileHover={{ scale: 1.02 }}
-                    onClick={() => navigateToDay(quarter.months[selectedMonth % 3], day)}
+                    onClick={() => navigateToDay(quarter.months[selectedMonth % 3], memory.date)}
                   >
                     {/* Memory Card */}
                     <div className="absolute inset-0 bg-white rounded-lg shadow-md overflow-hidden">
