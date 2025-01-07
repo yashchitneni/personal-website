@@ -1,10 +1,14 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { format, parseISO, setHours, setMinutes, setSeconds, setMilliseconds } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
+
+// New Next.js App Router configuration
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 
 export async function POST(request: Request) {
   try {
