@@ -4,16 +4,8 @@ import { NextResponse } from 'next/server';
 import { format, parseISO } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
-// Configure for regular serverless function with increased payload limit
-export const config = {
-  runtime: 'nodejs',
-  api: {
-    bodyParser: {
-      sizeLimit: '50mb'
-    },
-    maxDuration: 60
-  }
-};
+export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
@@ -25,6 +17,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Increase the size limit to 50MB
     const formData = await request.formData();
     const file = formData.get('image') as File;
     const date = formData.get('date') as string;
@@ -110,7 +103,7 @@ export async function POST(request: Request) {
       .getPublicUrl(fileName);
 
     // Create or update the daily entry in the database
-    const { data, error: entryError } = await supabase
+    const { data: entryData, error: entryError } = await supabase
       .from('daily_entries')
       .upsert({
         date: normalizedDate,
@@ -132,7 +125,7 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ data });
+    return NextResponse.json({ data: entryData });
   } catch (error) {
     console.error('Server error:', error);
     return NextResponse.json(
