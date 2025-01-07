@@ -4,28 +4,8 @@ import { NextResponse } from 'next/server';
 import { format, parseISO } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
-export const runtime = 'edge';
-
-/*
-Required Supabase Setup:
-1. Create a storage bucket named 'daily-images'
-   - Go to Storage in Supabase dashboard
-   - Click "New Bucket"
-   - Name it "daily-images"
-   - Make it private
-
-2. Create a table named 'daily_entries'
-   - Go to SQL editor
-   - Run this SQL:
-   CREATE TABLE daily_entries (
-     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-     user_id UUID REFERENCES auth.users(id),
-     date DATE NOT NULL,
-     image_url TEXT,
-     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
-     UNIQUE(user_id, date)
-   );
-*/
+// Remove edge runtime to ensure full File object support
+// export const runtime = 'edge';
 
 export async function POST(request: Request) {
   try {
@@ -49,40 +29,69 @@ export async function POST(request: Request) {
       );
     }
 
+    // Log request data for debugging
+    console.log('Upload request:', {
+      date,
+      timezone,
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type
+    });
+
     // Convert the local date to UTC, considering the user's timezone
     const localDate = parseISO(date);
     const zonedDate = toZonedTime(localDate, timezone);
     const normalizedDate = format(zonedDate, 'yyyy-MM-dd');
 
     // Check if an entry already exists for this date
-    const { data: existingEntry } = await supabase
+    const { data: existingEntry, error: existingError } = await supabase
       .from('daily_entries')
       .select('image_url')
       .eq('user_id', session.user.id)
       .eq('date', normalizedDate)
       .single();
 
+    if (existingError && existingError.code !== 'PGRST116') { // Ignore "not found" error
+      console.error('Error checking existing entry:', existingError);
+      return NextResponse.json(
+        { error: 'Error checking existing entry' },
+        { status: 500 }
+      );
+    }
+
     // If there's an existing entry, delete the old image
     if (existingEntry?.image_url) {
       const oldFileName = existingEntry.image_url.split('/').pop();
       if (oldFileName) {
-        await supabase.storage
+        const { error: removeError } = await supabase.storage
           .from('daily-images')
           .remove([oldFileName]);
+        
+        if (removeError) {
+          console.error('Error removing old image:', removeError);
+        }
       }
     }
 
     // Upload new image to Supabase Storage
     const fileExt = file.name.split('.').pop();
-    const fileName = `${date}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+    const fileName = `${normalizedDate}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+    
+    // Convert File to ArrayBuffer for upload
+    const arrayBuffer = await file.arrayBuffer();
+    const fileData = new Uint8Array(arrayBuffer);
+
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('daily-images')
-      .upload(fileName, file);
+      .upload(fileName, fileData, {
+        contentType: file.type,
+        cacheControl: '3600'
+      });
 
     if (uploadError) {
       console.error('Upload error:', uploadError);
       return NextResponse.json(
-        { error: 'Error uploading image' },
+        { error: 'Error uploading image: ' + uploadError.message },
         { status: 500 }
       );
     }
@@ -110,7 +119,7 @@ export async function POST(request: Request) {
     if (entryError) {
       console.error('Database error:', entryError);
       return NextResponse.json(
-        { error: 'Error saving entry' },
+        { error: 'Error saving entry: ' + entryError.message },
         { status: 500 }
       );
     }
@@ -119,7 +128,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Server error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error: ' + (error instanceof Error ? error.message : String(error)) },
       { status: 500 }
     );
   }
