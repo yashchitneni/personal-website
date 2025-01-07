@@ -24,6 +24,7 @@ export function ImageUploader({ date, onUploadComplete }: ImageUploaderProps) {
       const formData = new FormData();
       formData.append('image', file);
       formData.append('date', format(date, 'yyyy-MM-dd'));
+      formData.append('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
 
       const response = await fetch('/api/upload-daily-image', {
         method: 'POST',

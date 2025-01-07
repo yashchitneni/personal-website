@@ -5,12 +5,16 @@ import { ImageUploader } from '@/app/components/ImageUploader';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 export default function UploadPage() {
   const router = useRouter();
   const supabase = createClientComponentClient();
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Initialize with current date at noon to avoid timezone issues
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+  });
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,7 +87,12 @@ export default function UploadPage() {
             <input
               type="date"
               value={format(selectedDate, 'yyyy-MM-dd')}
-              onChange={(e) => setSelectedDate(new Date(e.target.value))}
+              onChange={(e) => {
+                // Create new date at noon to avoid timezone issues
+                const date = parseISO(e.target.value);
+                const newDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+                setSelectedDate(newDate);
+              }}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>

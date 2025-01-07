@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { MemoryScene } from '@/app/components/three/scene/MemoryScene';
+import { toZonedTime } from 'date-fns-tz';
 
 interface DailyEntry {
   image_url: string | null;
@@ -40,8 +41,9 @@ export function DayCarousel({ initialDate, initialEntry }: CarouselProps) {
   const [session, setSession] = useState<Session | null>(null);
   const [entries, setEntries] = useState<{ [key: string]: DailyEntry | null }>({});
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  const date = initialDate;
+  const date = toZonedTime(initialDate, timezone);
   const prevDate = subDays(date, 1);
   const nextDate = addDays(date, 1);
 
@@ -53,9 +55,9 @@ export function DayCarousel({ initialDate, initialEntry }: CarouselProps) {
       if (session) {
         // Fetch entries for current, previous, and next day
         const dates = [
-          format(prevDate, 'yyyy-MM-dd'),
-          format(date, 'yyyy-MM-dd'),
-          format(nextDate, 'yyyy-MM-dd')
+          format(toZonedTime(prevDate, timezone), 'yyyy-MM-dd'),
+          format(toZonedTime(date, timezone), 'yyyy-MM-dd'),
+          format(toZonedTime(nextDate, timezone), 'yyyy-MM-dd')
         ];
 
         const { data } = await supabase

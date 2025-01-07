@@ -1,6 +1,8 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { format, parseISO } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 export const runtime = 'edge';
 
@@ -38,6 +40,7 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const file = formData.get('image') as File;
     const date = formData.get('date') as string;
+    const timezone = formData.get('timezone') as string || 'UTC';
 
     if (!file || !date) {
       return NextResponse.json(
@@ -46,12 +49,17 @@ export async function POST(request: Request) {
       );
     }
 
+    // Convert the local date to UTC, considering the user's timezone
+    const localDate = parseISO(date);
+    const zonedDate = toZonedTime(localDate, timezone);
+    const normalizedDate = format(zonedDate, 'yyyy-MM-dd');
+
     // Check if an entry already exists for this date
     const { data: existingEntry } = await supabase
       .from('daily_entries')
       .select('image_url')
       .eq('user_id', session.user.id)
-      .eq('date', date)
+      .eq('date', normalizedDate)
       .single();
 
     // If there's an existing entry, delete the old image
@@ -88,7 +96,7 @@ export async function POST(request: Request) {
     const { data, error: entryError } = await supabase
       .from('daily_entries')
       .upsert({
-        date,
+        date: normalizedDate,
         image_url: publicUrl,
         user_id: session.user.id,
         updated_at: new Date().toISOString()

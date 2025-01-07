@@ -3,6 +3,8 @@ import { getDayFromOrdinal } from '@/app/utils/date';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { DayCarousel } from './DayCarousel';
+import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 const months = [
   'january', 'february', 'march', 'april', 'may', 'june',
@@ -35,7 +37,9 @@ export default async function DayPage({ params }: PageProps) {
     notFound();
   }
 
-  const formattedDate = date.toISOString().split('T')[0];
+  // Use UTC for server-side operations
+  const utcDate = toZonedTime(date, 'UTC');
+  const formattedDate = format(utcDate, 'yyyy-MM-dd');
 
   // Get initial entry data
   const { data: { session } } = await supabase.auth.getSession();
