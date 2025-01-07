@@ -4,8 +4,16 @@ import { NextResponse } from 'next/server';
 import { format, parseISO } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 
-// Remove edge runtime to ensure full File object support
-// export const runtime = 'edge';
+// Configure for regular serverless function with increased payload limit
+export const config = {
+  runtime: 'nodejs',
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb'
+    },
+    maxDuration: 60
+  }
+};
 
 export async function POST(request: Request) {
   try {
@@ -51,7 +59,7 @@ export async function POST(request: Request) {
       .eq('date', normalizedDate)
       .single();
 
-    if (existingError && existingError.code !== 'PGRST116') { // Ignore "not found" error
+    if (existingError && existingError.code !== 'PGRST116') {
       console.error('Error checking existing entry:', existingError);
       return NextResponse.json(
         { error: 'Error checking existing entry' },

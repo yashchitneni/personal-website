@@ -8,6 +8,8 @@ interface ImageUploaderProps {
   onUploadComplete?: (imageUrl: string) => void;
 }
 
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes
+
 export function ImageUploader({ date, onUploadComplete }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -15,6 +17,12 @@ export function ImageUploader({ date, onUploadComplete }: ImageUploaderProps) {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      setError(`File size must be less than 50MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB`);
+      return;
+    }
 
     // Reset states
     setError(null);
@@ -59,7 +67,7 @@ export function ImageUploader({ date, onUploadComplete }: ImageUploaderProps) {
           <div className="text-sm text-gray-500">Uploading...</div>
         ) : (
           <>
-            <div className="text-sm text-gray-500">Click to upload image</div>
+            <div className="text-sm text-gray-500">Click to upload image (max 50MB)</div>
             {error && <div className="text-sm text-red-500 mt-2">{error}</div>}
           </>
         )}
