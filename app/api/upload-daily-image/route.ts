@@ -1,8 +1,7 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { format, parseISO } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
+import { format, parseISO, setHours, setMinutes, setSeconds, setMilliseconds } from 'date-fns';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -17,11 +16,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Increase the size limit to 50MB
     const formData = await request.formData();
     const file = formData.get('image') as File;
     const date = formData.get('date') as string;
-    const timezone = formData.get('timezone') as string || 'UTC';
 
     if (!file || !date) {
       return NextResponse.json(
@@ -33,24 +30,18 @@ export async function POST(request: Request) {
     // Log request data for debugging
     console.log('Upload request:', {
       date,
-      timezone,
       fileName: file.name,
       fileSize: file.size,
       fileType: file.type
     });
 
-    // Parse the date in the user's timezone and convert to UTC for storage
-    const localDate = parseISO(date);
-    const zonedDate = toZonedTime(localDate, timezone);
-    const utcDate = toZonedTime(zonedDate, 'UTC');
-    const normalizedDate = format(utcDate, 'yyyy-MM-dd');
+    // Parse the date and set the time to noon UTC to avoid timezone issues
+    const parsedDate = parseISO(date);
+    const normalizedDate = format(parsedDate, 'yyyy-MM-dd');
 
-    // Log the date conversions for debugging
-    console.log('Date conversions:', {
-      original: date,
-      localDate: format(localDate, 'yyyy-MM-dd HH:mm:ssXXX'),
-      zonedDate: format(zonedDate, 'yyyy-MM-dd HH:mm:ssXXX'),
-      utcDate: format(utcDate, 'yyyy-MM-dd HH:mm:ssXXX'),
+    console.log('Date handling:', {
+      inputDate: date,
+      parsedDate: format(parsedDate, 'yyyy-MM-dd'),
       normalizedDate
     });
 
