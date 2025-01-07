@@ -39,10 +39,20 @@ export async function POST(request: Request) {
       fileType: file.type
     });
 
-    // Convert the local date to UTC, considering the user's timezone
+    // Parse the date in the user's timezone and convert to UTC for storage
     const localDate = parseISO(date);
     const zonedDate = toZonedTime(localDate, timezone);
-    const normalizedDate = format(zonedDate, 'yyyy-MM-dd');
+    const utcDate = toZonedTime(zonedDate, 'UTC');
+    const normalizedDate = format(utcDate, 'yyyy-MM-dd');
+
+    // Log the date conversions for debugging
+    console.log('Date conversions:', {
+      original: date,
+      localDate: format(localDate, 'yyyy-MM-dd HH:mm:ssXXX'),
+      zonedDate: format(zonedDate, 'yyyy-MM-dd HH:mm:ssXXX'),
+      utcDate: format(utcDate, 'yyyy-MM-dd HH:mm:ssXXX'),
+      normalizedDate
+    });
 
     // Check if an entry already exists for this date
     const { data: existingEntry, error: existingError } = await supabase
