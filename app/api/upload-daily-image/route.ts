@@ -12,10 +12,10 @@ export const preferredRegion = 'auto';
 // Increase size limit
 export async function POST(request: Request) {
   try {
-    // Ensure we're getting a proper request
-    if (!request.body) {
+    // Ensure we're getting a proper request with the right content type
+    if (!request.headers.get('content-type')?.includes('multipart/form-data')) {
       return NextResponse.json(
-        { error: 'No request body' },
+        { error: 'Content type must be multipart/form-data' },
         { status: 400 }
       );
     }
@@ -29,7 +29,9 @@ export async function POST(request: Request) {
     }
 
     try {
-      const formData = await request.formData();
+      // Clone the request to ensure we can read the body
+      const clonedRequest = request.clone();
+      const formData = await clonedRequest.formData();
       const file = formData.get('image') as File;
       const date = formData.get('date') as string;
 
@@ -54,7 +56,8 @@ export async function POST(request: Request) {
         date,
         fileName: file.name,
         fileSize: file.size,
-        fileType: file.type
+        fileType: file.type,
+        contentType: request.headers.get('content-type')
       });
 
       // Parse the date and set the time to noon UTC to avoid timezone issues
@@ -109,7 +112,8 @@ export async function POST(request: Request) {
         .from('daily-images')
         .upload(fileName, fileData, {
           contentType: file.type || 'image/jpeg',
-          cacheControl: '3600'
+          cacheControl: '3600',
+          upsert: true
         });
 
       if (uploadError) {
