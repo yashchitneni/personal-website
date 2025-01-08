@@ -1,14 +1,13 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { format, addDays, subDays } from 'date-fns';
+import { format, addDays, subDays, parseISO } from 'date-fns';
 import { getOrdinalSuffix } from '@/app/utils/date';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { MemoryScene } from '@/app/components/three/scene/MemoryScene';
-import { toZonedTime } from 'date-fns-tz';
 
 interface DailyEntry {
   image_url: string | null;
@@ -41,41 +40,48 @@ export function DayCarousel({ initialDate, initialEntry }: CarouselProps) {
   const [session, setSession] = useState<Session | null>(null);
   const [entries, setEntries] = useState<{ [key: string]: DailyEntry | null }>({});
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const [currentDate, setCurrentDate] = useState(initialDate);
 
-  const date = toZonedTime(initialDate, timezone);
-  const prevDate = subDays(date, 1);
-  const nextDate = addDays(date, 1);
-
+  // Fetch session only once
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
-
-      if (session) {
-        // Fetch entries for current, previous, and next day
-        const dates = [
-          format(toZonedTime(prevDate, timezone), 'yyyy-MM-dd'),
-          format(toZonedTime(date, timezone), 'yyyy-MM-dd'),
-          format(toZonedTime(nextDate, timezone), 'yyyy-MM-dd')
-        ];
-
-        const { data } = await supabase
-          .from('daily_entries')
-          .select('image_url, user_id, date')
-          .in('date', dates)
-          .eq('user_id', session.user.id);
-
-        const entriesMap = (data || []).reduce((acc, entry) => {
-          acc[entry.date] = entry;
-          return acc;
-        }, {} as { [key: string]: DailyEntry });
-
-        setEntries(entriesMap);
-      }
     };
-    fetchData();
-  }, [date, supabase]);
+    fetchSession();
+  }, [supabase.auth]);
+
+  // Fetch entries when session or date changes
+  useEffect(() => {
+    const fetchEntries = async () => {
+      if (!session) return;
+
+      const prevDate = subDays(currentDate, 1);
+      const nextDate = addDays(currentDate, 1);
+
+      // Format dates for database query
+      const dates = [
+        format(prevDate, 'yyyy-MM-dd'),
+        format(currentDate, 'yyyy-MM-dd'),
+        format(nextDate, 'yyyy-MM-dd')
+      ];
+
+      const { data } = await supabase
+        .from('daily_entries')
+        .select('image_url, user_id, date')
+        .in('date', dates)
+        .eq('user_id', session.user.id);
+
+      const entriesMap = (data || []).reduce((acc, entry) => {
+        acc[entry.date] = entry;
+        return acc;
+      }, {} as { [key: string]: DailyEntry });
+
+      setEntries(entriesMap);
+    };
+
+    fetchEntries();
+  }, [session, currentDate, supabase]);
 
   const navigateToDate = (targetDate: Date) => {
     if (isTransitioning) return;
@@ -90,7 +96,10 @@ export function DayCarousel({ initialDate, initialEntry }: CarouselProps) {
     }, 500);
   };
 
-  const currentEntry = entries[format(date, 'yyyy-MM-dd')] || initialEntry;
+  const prevDate = subDays(currentDate, 1);
+  const nextDate = addDays(currentDate, 1);
+
+  const currentEntry = entries[format(currentDate, 'yyyy-MM-dd')] || initialEntry;
   const prevEntry = entries[format(prevDate, 'yyyy-MM-dd')];
   const nextEntry = entries[format(nextDate, 'yyyy-MM-dd')];
 
@@ -104,12 +113,12 @@ export function DayCarousel({ initialDate, initialEntry }: CarouselProps) {
         <div className="container max-w-lg mx-auto px-4 py-4">
           <button
             onClick={() => {
-              const quarter = Math.floor(date.getMonth() / 3) + 1;
+              const quarter = Math.floor(currentDate.getMonth() / 3) + 1;
               router.push(`/maximizing/quarter/${quarter}`);
             }}
             className="text-gray-600 hover:text-gray-900 mb-4 flex items-center gap-2"
           >
-            ← Back to Q{Math.floor(date.getMonth() / 3) + 1}
+            ← Back to Q{Math.floor(currentDate.getMonth() / 3) + 1}
           </button>
         </div>
       </div>
@@ -143,39 +152,12 @@ export function DayCarousel({ initialDate, initialEntry }: CarouselProps) {
         </div>
 
         {/* Current Day Card */}
-        <motion.div
-          className="w-full mb-8"
-          drag="x"
-          dragConstraints={{ left: 0, right: 0 }}
-          onDragEnd={(e, info) => {
-            if (isTransitioning) return;
-            if (info.offset.x < -100) navigateToDate(nextDate);
-            if (info.offset.x > 100) navigateToDate(prevDate);
-          }}
-          dragElastic={0.2}
-          whileDrag={{ scale: 0.98 }}
-          transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        >
-          <DayCard 
-            date={date} 
-            entry={currentEntry} 
-            isToday={format(new Date(), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')} 
-            session={session}
-          />
-        </motion.div>
-
-        {/* Additional Content */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.3 }}
-        >
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="h-32 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-lg">
-              <p className="text-gray-500">Voice Note / Journal Entry Coming Soon</p>
-            </div>
-          </div>
-        </motion.div>
+        <DayCard 
+          date={currentDate} 
+          entry={currentEntry} 
+          isToday={format(new Date(), 'yyyy-MM-dd') === format(currentDate, 'yyyy-MM-dd')} 
+          session={session}
+        />
       </div>
     </div>
   );

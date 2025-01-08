@@ -4,7 +4,6 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { DayCarousel } from './DayCarousel';
 import { format } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
 
 const months = [
   'january', 'february', 'march', 'april', 'may', 'june',
@@ -29,7 +28,7 @@ export default async function DayPage({ params }: PageProps) {
 
   // Create date and validate it's a real date
   const currentYear = new Date().getFullYear();
-  const date = new Date(currentYear, monthIndex, day);
+  const date = new Date(currentYear, monthIndex, day, 12, 0, 0, 0); // Set to noon to avoid timezone issues
   
   // Check if the date is valid and the day matches
   // This catches invalid dates like February 31st
@@ -37,9 +36,8 @@ export default async function DayPage({ params }: PageProps) {
     notFound();
   }
 
-  // Use UTC for server-side operations
-  const utcDate = toZonedTime(date, 'UTC');
-  const formattedDate = format(utcDate, 'yyyy-MM-dd');
+  // Format date for database query
+  const formattedDate = format(date, 'yyyy-MM-dd');
 
   // Get initial entry data
   const { data: { session } } = await supabase.auth.getSession();
