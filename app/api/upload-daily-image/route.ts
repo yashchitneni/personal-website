@@ -6,7 +6,7 @@ import { format, parseISO } from 'date-fns';
 // Configure for Next.js 14 App Router
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // 5 minutes
+export const maxDuration = 60; // Maximum allowed on Hobby plan
 export const preferredRegion = 'auto';
 
 // Increase size limit
