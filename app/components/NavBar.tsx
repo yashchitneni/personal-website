@@ -45,7 +45,7 @@ export function NavBar() {
             <Link href="/maximizing" className="text-gray-600 hover:text-gray-900">
               Maximizing
             </Link>
-            <Link href="/my-os" className="text-gray-600 hover:text-gray-900">
+            <Link href="/powered-by" className="text-gray-600 hover:text-gray-900">
               My OS
             </Link>
             <Link href="/dictating" className="text-gray-600 hover:text-gray-900">
@@ -77,7 +77,7 @@ export function NavBar() {
           <button onClick={() => handleLinkClick('/maximizing')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
             Maximizing
           </button>
-          <button onClick={() => handleLinkClick('/my-os')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+          <button onClick={() => handleLinkClick('/powered-by')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
             My OS
           </button>
           <button onClick={() => handleLinkClick('/dictating')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
