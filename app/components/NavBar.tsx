@@ -42,8 +42,8 @@ export function NavBar() {
             </Link>
           </div>
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/maximizing" className="text-gray-600 hover:text-gray-900">
-              Maximizing
+            <Link href="/podcasts" className="text-gray-600 hover:text-gray-900">
+              Podcasts
             </Link>
             <Link href="/powered-by" className="text-gray-600 hover:text-gray-900">
               My OS
@@ -72,22 +72,22 @@ export function NavBar() {
       </div>
 
       {/* Mobile menu, show/hide based on menu state */}
-      <div ref={menuRef} className={`md:hidden ${isMenuOpen ? 'block' : 'hidden'}`}>
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <button onClick={() => handleLinkClick('/maximizing')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
-            Maximizing
-          </button>
-          <button onClick={() => handleLinkClick('/powered-by')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
-            My OS
-          </button>
-          <button onClick={() => handleLinkClick('/dictating')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
-            Dictating
-          </button>
-          <button onClick={() => handleLinkClick('/book-ai-session')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
-            Book an AI Session
-          </button>
+        <div className={`md:hidden ${isMenuOpen ? 'block' : 'hidden'}`}>
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <button onClick={() => handleLinkClick('/podcasts')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+              Podcasts
+            </button>
+            <button onClick={() => handleLinkClick('/powered-by')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+              My OS
+            </button>
+            <button onClick={() => handleLinkClick('/dictating')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+              Dictating
+            </button>
+            <button onClick={() => handleLinkClick('/book-ai-session')} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">
+              Book an AI Session
+            </button>
+          </div>
         </div>
-      </div>
     </nav>
   );
 }

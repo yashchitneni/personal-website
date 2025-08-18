@@ -1,0 +1,18 @@
+
+> personal-website@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.22
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1305ms
+ ○ Compiling /podcasts ...
+Browserslist: caniuse-lite is outdated. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+ ✓ Compiled /podcasts in 1806ms (596 modules)
+ GET /podcasts 200 in 1933ms
+ ✓ Compiled in 144ms (288 modules)
+[?25h

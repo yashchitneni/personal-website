@@ -62,8 +62,6 @@ export default async function MyOSPage() {
 
   // Filter tools by category
   const hardwareItems = tools?.filter(tool => tool.category === 'Hardware & Gear') || []
-  const softwareItems = tools?.filter(tool => tool.category === 'Software & Services') || []
-  const systemsItems = tools?.filter(tool => tool.category === 'Systems & Frameworks') || []
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -80,20 +78,6 @@ export default async function MyOSPage() {
             Hardware & Gear
           </h2>
           <ItemGrid items={hardwareItems} />
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-            Software & Services
-          </h2>
-          <ItemGrid items={softwareItems} />
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-            Systems & Frameworks
-          </h2>
-          <ItemGrid items={systemsItems} />
         </section>
       </div>
     </div>
