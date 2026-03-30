@@ -18,6 +18,20 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/podcasts',
+        destination: '/podcasting',
+        permanent: true,
+      },
+      {
+        source: '/podcasts/:path*',
+        destination: '/podcasting/:path*',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
