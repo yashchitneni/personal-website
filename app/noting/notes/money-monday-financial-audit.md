@@ -19,13 +19,15 @@ The only risk is not doing it. April 15 is the hard cutoff.
 
 ---
 
-## Want to Go Deeper? Run a 15-Minute Financial Audit
+## Want to Go Deeper? Run a Full Financial Audit
 
-The Roth IRA move is one thing. But if you want to see the full picture — where your money's actually going, what you're overpaying for, what you're missing — you can run a complete financial audit in 15 minutes with Claude.
+The Roth IRA move is one thing. But if you want the full picture — where your money's actually going, what you're overpaying for, what you're missing — you have two paths.
 
-I did this last week. It surfaced forgotten subscriptions, spending trends I'd been ignoring, and tax moves I was leaving on the table.
+**What I do:** I use [Monarch Money](https://www.monarchmoney.com/) to track everything automatically. It pulls from all my accounts, categorizes spending, and I have my AI agent run audits on it regularly. I don't have to think about it — the data's always there.
 
-Here's exactly how.
+**If you don't want to pay for a service:** You can do the same thing manually with a bank statement export and Claude. It takes about 15 minutes and surfaces the same insights. You just have to do it yourself each time.
+
+Either way works. One costs money and saves time. The other costs time and saves money. Pick whichever fits.
 
 ---
 
@@ -80,4 +82,4 @@ That's it. Claude will read your statement and give you a full breakdown.
 
 You don't need to fix everything today. Just do the #1 action it suggests. Usually takes less than 20 minutes.
 
-For me, it was finally opening that Roth IRA — something I'd been putting off for weeks.
+Then just do it. One action. Done.
