@@ -7,13 +7,11 @@ description: "Export your bank statement, paste one prompt, get a full financial
 
 # Run a 15-Minute Financial Audit with Claude
 
-Most people avoid looking at their money. Not because they're bad with it — because it's uncomfortable. You know you *should* check, but you don't want to see what's there.
+Looking at your finances is uncomfortable. So most of us just… don't.
 
-Here's what I did: I exported my bank statement, dropped it into Claude, and had a full financial audit in 15 minutes. No spreadsheets. No budgeting app. Just a conversation.
+I finally did it last week. Exported my bank statement, dropped it into Claude, and had a full audit in 15 minutes. It surfaced forgotten subscriptions, showed me exactly where my money's going, and flagged that I could still contribute to last year's Roth IRA before the April 15 deadline.
 
-It surfaced subscriptions I forgot about, showed me exactly where my money's going, and told me I could still contribute to last year's Roth IRA before the April 15 deadline.
-
-You can do the same thing right now.
+Here's exactly how to do it yourself.
 
 ---
 
