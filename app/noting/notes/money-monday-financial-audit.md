@@ -23,11 +23,13 @@ The only risk is not doing it. April 15 is the hard cutoff.
 
 The Roth IRA move is one thing. But if you want the full picture — where your money's actually going, what you're overpaying for, what you're missing — you have two paths.
 
-**What I do:** I use [Monarch Money](https://www.monarchmoney.com/) to track everything automatically. It pulls from all my accounts, categorizes spending, and I have my AI agent run audits on it regularly. I don't have to think about it — the data's always there.
+**What I do:** I use [Monarch Money](https://monarch.com/referral/d49oxk6nde?r_source=copy) to track everything automatically. It pulls from all my accounts, categorizes spending, and I have my AI agent run audits on it regularly. I don't have to think about it — the data's always there. That's my referral link — you get 50% off your first year if you use it.
 
-**If you don't want to pay for a service:** You can do the same thing manually with a bank statement export and Claude. It takes about 15 minutes and surfaces the same insights. You just have to do it yourself each time.
+If you'd rather not use a referral, here's the [regular Monarch link](https://www.monarchmoney.com/).
 
-Either way works. One costs money and saves time. The other costs time and saves money. Pick whichever fits.
+**If you don't want to pay for a service at all:** You can do the same thing manually with a bank statement export and Claude. It takes about 15 minutes and surfaces the same insights. You just have to do it yourself each time.
+
+Either way works. One costs money and saves time. The other costs time and saves money.
 
 ---
 
