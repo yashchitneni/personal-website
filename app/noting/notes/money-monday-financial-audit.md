@@ -1,21 +1,35 @@
 ---
-title: "Run a 15-Minute Financial Audit with Claude"
+title: "The Roth IRA Back Door You're Sleeping On"
 date: "2026-03-30"
 tags: ["money-monday", "finance", "ai-tools"]
-description: "Export your bank statement, paste one prompt, get a full financial audit. Plus: the Roth IRA move you're sleeping on."
+description: "You can still contribute to your 2025 Roth IRA until April 15. Here's why that matters — plus a 15-minute financial audit you can run with Claude."
 ---
 
-# Run a 15-Minute Financial Audit with Claude
+# The Roth IRA Back Door You're Sleeping On
 
-Looking at your finances is uncomfortable. So most of us just… don't.
+Tax season reminder most people miss:
 
-I finally did it last week. Exported my bank statement, dropped it into Claude, and had a full audit in 15 minutes. It surfaced forgotten subscriptions, showed me exactly where my money's going, and flagged that I could still contribute to last year's Roth IRA before the April 15 deadline.
+You can still contribute to your **2025 Roth IRA** until **April 15, 2026**. That means right now — today — you can open a Roth, put in up to $7,000 ($8,000 if you're 50+), and it counts as last year's contribution.
 
-Here's exactly how to do it yourself.
+**You can withdraw your principal anytime.** No penalties. No waiting period. Put in $3,500 today, need it back in 6 months — take it out. Zero fines.
+
+If you *don't* need it? It just sits there compounding tax-free. For decades.
+
+The only risk is not doing it. April 15 is the hard cutoff.
 
 ---
 
-## Step 1: Export Your Bank Statement
+## Want to Go Deeper? Run a 15-Minute Financial Audit
+
+The Roth IRA move is one thing. But if you want to see the full picture — where your money's actually going, what you're overpaying for, what you're missing — you can run a complete financial audit in 15 minutes with Claude.
+
+I did this last week. It surfaced forgotten subscriptions, spending trends I'd been ignoring, and tax moves I was leaving on the table.
+
+Here's exactly how.
+
+---
+
+### Step 1: Export Your Bank Statement
 
 Log into your bank's website or app. Look for **"Download Statements"** or **"Export Transactions."**
 
@@ -31,7 +45,7 @@ If your bank gives you options: **CSV is best** (Claude reads it cleanly). PDF w
 
 ---
 
-## Step 2: Open Claude and Paste This Prompt
+### Step 2: Open Claude and Paste This Prompt
 
 Go to [claude.ai](https://claude.ai) and start a new conversation. Upload your bank statement file, then paste this:
 
@@ -62,20 +76,8 @@ That's it. Claude will read your statement and give you a full breakdown.
 
 ---
 
-## Step 3: Do the One Thing It Tells You
+### Step 3: Do the One Thing It Tells You
 
 You don't need to fix everything today. Just do the #1 action it suggests. Usually takes less than 20 minutes.
 
-For me, it was opening a Roth IRA for last year's contribution — something I'd been putting off for weeks.
-
----
-
-## The Roth IRA Tip (If You Do Nothing Else)
-
-You can contribute to your **2025 Roth IRA** until **April 15, 2026**. Max is $7,000 (or $8,000 if you're 50+).
-
-The part most people don't realize: **you can withdraw your principal anytime.** No penalties. No waiting period. Put in $3,000 today, need it back in August — just take it out.
-
-If you *don't* need it, it compounds tax-free for decades.
-
-The only risk is not doing it before the deadline.
+For me, it was finally opening that Roth IRA — something I'd been putting off for weeks.
