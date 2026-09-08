@@ -115,20 +115,33 @@ create table if not exists health_body_profile (
 
 -- ---------------------------------------------------------------- dexa
 create table if not exists health_body_composition (
-  id             text primary key,
-  date           date not null,
-  label          text,
-  source         text not null check (source in ('dexa', 'inbody', 'scale')),
-  weight_kg      numeric(5,2) not null,
-  lean_mass_kg   numeric(5,2) not null,
-  fat_mass_kg    numeric(5,2) not null,
-  bone_mass_kg   numeric(4,2),
-  body_fat_pct   numeric(4,1) not null,
-  visceral_fat_g integer,
-  regional       jsonb,                                            -- {trunk|arms|legs: {leanKg, fatKg}}
-  notes          text,
-  report_url     text,
-  synced_at      timestamptz not null default now()
+  id                   text primary key,
+  date                 date not null,
+  label                text,                                      -- 'Day 0', 'Week 8'
+  source               text not null check (source in ('dexa', 'inbody', 'scale')),
+  weight_kg            numeric(5,2) not null,                     -- scale weight at the scan
+  total_mass_kg        numeric(5,2),                              -- mass measured by the scan
+  lean_mass_kg         numeric(5,2) not null,
+  fat_mass_kg          numeric(5,2) not null,
+  bone_mass_kg         numeric(4,2),
+  fat_free_mass_kg     numeric(5,2),                              -- lean + bone
+  body_fat_pct         numeric(4,1) not null,
+  tissue_lean_pct      numeric(4,1),
+  visceral_fat_g       integer,
+  regional             jsonb,                                     -- {arms|legs|trunk|android|gynoid: {leanKg, fatKg, fatPct}}
+  symmetry             jsonb,                                     -- {arms|legs|trunk|total: {leftKg, rightKg}}
+  android_gynoid_ratio numeric(4,2),
+  rmr_kcal             integer,
+  rsmi_kg_m2           numeric(4,2),
+  bmi                  numeric(4,1),
+  height_cm            numeric(5,1),
+  age_years            numeric(4,1),
+  facility             text,
+  device               text,
+  patient_ref          text,                                      -- facility patient id; not rendered
+  report_url           text,
+  notes                text,
+  synced_at            timestamptz not null default now()
 );
 create index if not exists health_body_composition_date_idx on health_body_composition (date);
 

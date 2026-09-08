@@ -159,9 +159,19 @@ export interface BodyProfile {
 /* Body composition (DEXA and friends)                                 */
 /* ------------------------------------------------------------------ */
 
+/** One DEXA region. Reports don't always give every field, so each is nullable. */
 export interface RegionalComposition {
-  leanKg: number
-  fatKg: number
+  leanKg: number | null
+  fatKg: number | null
+  fatPct: number | null
+}
+
+export type DexaRegion = 'arms' | 'legs' | 'trunk' | 'android' | 'gynoid'
+
+/** Left / right lean mass for a limb group (GE Lunar "Lean Mass Balance"). */
+export interface LeanSymmetry {
+  leftKg: number
+  rightKg: number
 }
 
 export interface BodyComposition {
@@ -170,17 +180,42 @@ export interface BodyComposition {
   /** "Day 0", "Week 8" — shown as a label on the timeline */
   label: string | null
   source: Extract<MetricSource, 'dexa' | 'inbody' | 'scale'>
+  /** scale weight entered at the scan */
   weightKg: number
+  /** total mass measured by the scan (usually a few hundred grams under scale weight) */
+  totalMassKg: number | null
   leanMassKg: number
   fatMassKg: number
   boneMassKg: number | null
+  /** fat-free mass = lean + bone */
+  fatFreeMassKg: number | null
+  /** total body fat percentage as reported for the "Total" region */
   bodyFatPct: number
+  /** tissue % lean (lean / (lean + fat)) when reported */
+  tissueLeanPct: number | null
   visceralFatG: number | null
-  regional: {
-    trunk: RegionalComposition
-    arms: RegionalComposition
-    legs: RegionalComposition
+  regional: Partial<Record<DexaRegion, RegionalComposition>> | null
+  /** left / right lean balance, plus the total, when reported */
+  symmetry: {
+    arms: LeanSymmetry
+    legs: LeanSymmetry
+    trunk: LeanSymmetry
+    total: LeanSymmetry
   } | null
+  /** android / gynoid fat ratio */
+  androidGynoidRatio: number | null
+  /** resting metabolic rate from the report (Harris-Benedict on GE Lunar), kcal/day */
+  rmrKcal: number | null
+  /** relative skeletal muscle index, kg/m² */
+  rsmiKgM2: number | null
+  bmi: number | null
+  heightCm: number | null
+  ageYears: number | null
+  facility: string | null
+  device: string | null
+  /** facility patient / study reference; not a secret but not displayed */
+  patientRef: string | null
+  reportUrl: string | null
   notes: string | null
 }
 
@@ -258,7 +293,9 @@ export type SubjectiveCheckin = {
 
 export interface WeeklyDelta {
   weekStart: ISODate
+  /** 1 = the week starting on Day 0; ≤ 0 = baseline weeks before the arc */
   weekIndex: number
+  baseline: boolean
   weightAvgKg: number | null
   weightDeltaKg: number | null
   sleepScoreAvg: number | null
