@@ -1,17 +1,32 @@
 import type { Metadata } from 'next'
 import { getHealthSnapshot } from '@/app/lib/health/snapshot'
-import { avg, getArc, getHeroNumbers, getLatestFocus, getMetricStrip, getPhaseState, getWeeklyDeltas, last, lastN } from '@/app/lib/health/derive'
+import {
+  avg,
+  dailyDose,
+  getActiveGoals,
+  getArc,
+  getCurrentSupplementPhase,
+  getHeroNumbers,
+  getLatestFocus,
+  getMetricStrip,
+  getPhaseState,
+  getWeeklyDeltas,
+  last,
+  lastN,
+} from '@/app/lib/health/derive'
 import { fmtClock, fmtDate, fmtMass, fmtMassDelta, fmtMassValue, fmtMinutes, fmtNumber, fmtSigned, MASS_UNIT } from '@/app/lib/health/format'
 import { BodyDetail } from '@/app/components/health/BodyDetail'
 import { CheckinsDetail } from '@/app/components/health/CheckinsDetail'
 import { DetailSection } from '@/app/components/health/DetailSection'
 import { FitnessDetail } from '@/app/components/health/FitnessDetail'
 import { FuelDetail } from '@/app/components/health/FuelDetail'
+import { GoalTrack } from '@/app/components/health/GoalTrack'
 import { Loop } from '@/app/components/health/Loop'
 import { MetricStrip } from '@/app/components/health/MetricStrip'
 import { PhaseArc } from '@/app/components/health/PhaseArc'
 import { PhotosDetail } from '@/app/components/health/PhotosDetail'
 import { SleepDetail } from '@/app/components/health/SleepDetail'
+import { fmtDose, SupplementsDetail } from '@/app/components/health/SupplementsDetail'
 import { TrainingDetail } from '@/app/components/health/TrainingDetail'
 import { WeeklyLedger } from '@/app/components/health/WeeklyLedger'
 import { Eyebrow } from '@/app/components/health/primitives'
@@ -31,6 +46,12 @@ export default async function HealthPage() {
   const strip = getMetricStrip(snapshot)
   const focus = getLatestFocus(snapshot)
   const weeks = getWeeklyDeltas(snapshot)
+  const goals = getActiveGoals(snapshot)
+  const activeSupplements = snapshot.supplements.filter((s) => s.status === 'active')
+  const plannedSupplements = snapshot.supplements.filter((s) => s.status === 'planned')
+  const leadSupplement = activeSupplements[0] ?? null
+  const leadPhase = leadSupplement ? getCurrentSupplementPhase(leadSupplement, snapshot.today) : null
+  const leadDaily = leadPhase ? dailyDose(leadPhase.dose) : null
 
   const sleepWeek = lastN(snapshot.sleep, 7)
   const sleepDuration = avg(sleepWeek.map((s) => s.durationMin))
@@ -126,8 +147,9 @@ export default async function HealthPage() {
               {hero.dayZero.rmrKcal && <Fact label="RMR" value={`${fmtNumber(hero.dayZero.rmrKcal)} kcal`} />}
             </>
           )}
-          {phase.current && <Fact label="Goal" value={phase.current.goal} muted />}
+          {goals.length === 0 && phase.current && <Fact label="Goal" value={phase.current.goal} muted />}
         </dl>
+        <GoalTrack goals={goals} />
         <PhaseArc arc={arc} phase={phase} />
       </section>
 
@@ -181,6 +203,20 @@ export default async function HealthPage() {
 
         <DetailSection id="fuel" title="Fuel" headline={kcal === null ? '—' : `${fmtNumber(kcal)} kcal`} aside={protein === null ? undefined : `${fmtNumber(protein)} g protein · target ${snapshot.targets.proteinG} g`}>
           <FuelDetail food={snapshot.food} targets={snapshot.targets} />
+        </DetailSection>
+
+        <DetailSection
+          id="supplements"
+          title="Supplements"
+          headline={leadSupplement && leadDaily ? `${leadSupplement.name.split(' ')[0]} ${fmtDose(leadDaily.amount, leadDaily.unit)}/day` : `${snapshot.supplements.length} protocols`}
+          aside={[
+            leadPhase ? `${leadPhase.label.toLowerCase()} phase${leadPhase.endDate ? ` through ${fmtDate(leadPhase.endDate)}` : ''}` : null,
+            plannedSupplements.length ? `${plannedSupplements.map((s) => s.name.toLowerCase()).join(', ')} planned` : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+        >
+          <SupplementsDetail supplements={snapshot.supplements} log={snapshot.supplementLog} today={snapshot.today} />
         </DetailSection>
 
         <DetailSection

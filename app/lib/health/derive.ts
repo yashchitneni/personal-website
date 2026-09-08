@@ -1,11 +1,15 @@
 import { addDays, differenceInCalendarDays, parseISO } from 'date-fns'
 import type {
   BodyComposition,
+  Dose,
   FocusNote,
+  Goal,
   HealthSnapshot,
   ISODate,
   MetricSummary,
   RecompPhase,
+  SupplementPhase,
+  SupplementProtocol,
   Trend,
   WeeklyDelta,
 } from '@/app/types/health'
@@ -321,6 +325,106 @@ export function getWeeklyDeltas(snapshot: HealthSnapshot): WeeklyDelta[] {
     if (weight !== null) prevWeight = weight
   }
   return rows
+}
+
+/* ------------------------------------------------------------------ */
+/* Goals and supplements                                               */
+/* ------------------------------------------------------------------ */
+
+export interface GoalProgress {
+  goal: Goal
+  /** latest reading from the goal's source, or null before the first one */
+  current: number | null
+  measuredOn: ISODate | null
+  /** current − start, in the goal's unit */
+  achieved: number | null
+  /** 0–1 share of the gap closed (clamped) */
+  fraction: number
+  /** 0–1 share of the time window elapsed (clamped) */
+  elapsed: number
+  daysLeft: number
+  /** change per week still required to hit the target on time */
+  requiredPerWeek: number | null
+  /** null before the first reading; otherwise whether progress is at least pro-rata */
+  onTrack: boolean | null
+}
+
+function readGoalMetric(snapshot: HealthSnapshot, goal: Goal, since: ISODate): { value: number; date: ISODate } | null {
+  if (goal.measuredBy === 'dexa') {
+    const scan = [...snapshot.compositions].filter((s) => s.date >= since).sort((a, b) => b.date.localeCompare(a.date))[0]
+    if (!scan) return null
+    const value =
+      goal.metric === 'lean_mass'
+        ? scan.leanMassKg
+        : goal.metric === 'fat_mass'
+          ? scan.fatMassKg
+          : goal.metric === 'body_fat_pct'
+            ? scan.bodyFatPct
+            : goal.metric === 'weight'
+              ? scan.weightKg
+              : null
+    return value === null ? null : { value, date: scan.date }
+  }
+  if (goal.metric === 'weight') {
+    const recent = lastN(snapshot.bodyProfile.filter((b) => b.date >= since), 7)
+    const value = avg(recent.map((b) => b.weightKg))
+    return value === null ? null : { value, date: recent[recent.length - 1].date }
+  }
+  if (goal.metric === 'vo2max') {
+    const f = [...snapshot.fitness].filter((x) => x.date >= since && x.vo2max !== null).sort((a, b) => b.date.localeCompare(a.date))[0]
+    return f ? { value: f.vo2max!, date: f.date } : null
+  }
+  return null
+}
+
+export function getGoalProgress(snapshot: HealthSnapshot, goal: Goal): GoalProgress {
+  const today = parseISO(snapshot.today)
+  const start = parseISO(goal.startDate)
+  const end = parseISO(goal.targetDate)
+  const totalDays = Math.max(1, differenceInCalendarDays(end, start))
+  const elapsedDays = Math.min(totalDays, Math.max(0, differenceInCalendarDays(today, start)))
+  const daysLeft = Math.max(0, differenceInCalendarDays(end, today))
+  const gap = goal.targetValue - goal.startValue
+
+  // a reading on the start date is the baseline itself, not progress
+  const reading = readGoalMetric(snapshot, goal, goal.startDate)
+  const isBaselineOnly = reading !== null && reading.date === goal.startDate
+  const current = reading && !isBaselineOnly ? reading.value : null
+  const achieved = current === null ? null : current - goal.startValue
+  const fraction = achieved === null || gap === 0 ? 0 : Math.max(0, Math.min(1, achieved / gap))
+  const elapsed = elapsedDays / totalDays
+  const remaining = goal.targetValue - (current ?? goal.startValue)
+  const weeksLeft = daysLeft / 7
+  const requiredPerWeek = weeksLeft > 0 ? remaining / weeksLeft : null
+  const onTrack = achieved === null ? null : gap >= 0 ? achieved >= gap * elapsed : achieved <= gap * elapsed
+
+  return {
+    goal,
+    current,
+    measuredOn: current === null ? null : reading!.date,
+    achieved,
+    fraction,
+    elapsed,
+    daysLeft,
+    requiredPerWeek,
+    onTrack,
+  }
+}
+
+export function getActiveGoals(snapshot: HealthSnapshot): GoalProgress[] {
+  return snapshot.goals
+    .filter((g) => g.status === 'active')
+    .sort((a, b) => a.targetDate.localeCompare(b.targetDate))
+    .map((g) => getGoalProgress(snapshot, g))
+}
+
+/** The protocol phase in force on `today`, if any. */
+export function getCurrentSupplementPhase(protocol: SupplementProtocol, today: ISODate): SupplementPhase | null {
+  return protocol.phases.find((p) => p.startDate <= today && (p.endDate === null || p.endDate >= today)) ?? null
+}
+
+export function dailyDose(dose: Dose): { amount: number; unit: Dose['unit'] } {
+  return { amount: dose.amount * dose.perDay, unit: dose.unit }
 }
 
 export function getLatestFocus(snapshot: HealthSnapshot): FocusNote | null {

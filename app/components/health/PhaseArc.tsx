@@ -10,7 +10,7 @@ interface PhaseArcProps {
 /** The whole plan on one line: build → cut, with today marked. */
 export function PhaseArc({ arc, phase }: PhaseArcProps) {
   return (
-    <div className="mt-10">
+    <div className="mt-14">
       <div className="relative h-px w-full bg-stone-200">
         {arc.segments.map((seg) => {
           const active = seg.phase.id === phase.current?.id
