@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { differenceInCalendarDays, parseISO } from 'date-fns'
-import { fmtDate } from '@/app/lib/health/format'
+import { fmtDate, fmtMass } from '@/app/lib/health/format'
 import type { ISODate, ProgressPhoto } from '@/app/types/health'
 import { Eyebrow } from './primitives'
 
@@ -38,7 +38,7 @@ export function PhotosDetail({ photos, dayZero }: PhotosDetailProps) {
               </div>
               <figcaption className="text-[11px] leading-tight text-stone-500">
                 <div className="text-stone-700">{wk === 0 ? 'Day 0' : wk !== null ? `Week ${wk}` : fmtDate(p.date)}</div>
-                <div className="tabular-nums text-stone-400">{p.weightKg ? `${p.weightKg.toFixed(1)} kg` : fmtDate(p.date)}</div>
+                <div className="tabular-nums text-stone-400">{p.weightKg ? fmtMass(p.weightKg) : fmtDate(p.date)}</div>
               </figcaption>
             </figure>
           )

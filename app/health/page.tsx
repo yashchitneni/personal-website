@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { getHealthSnapshot } from '@/app/lib/health/snapshot'
 import { avg, getArc, getHeroNumbers, getLatestFocus, getMetricStrip, getPhaseState, getWeeklyDeltas, last, lastN } from '@/app/lib/health/derive'
-import { fmtClock, fmtDate, fmtMinutes, fmtNumber, fmtSigned } from '@/app/lib/health/format'
+import { fmtClock, fmtDate, fmtMass, fmtMassDelta, fmtMassValue, fmtMinutes, fmtNumber, fmtSigned, MASS_UNIT } from '@/app/lib/health/format'
 import { BodyDetail } from '@/app/components/health/BodyDetail'
 import { CheckinsDetail } from '@/app/components/health/CheckinsDetail'
 import { DetailSection } from '@/app/components/health/DetailSection'
@@ -45,19 +45,25 @@ export default async function HealthPage() {
   const energy = avg(lastN(snapshot.checkins, 7).map((c) => c.energy))
   const frontPhotos = snapshot.photos.filter((p) => p.pose === 'front').length
 
-  // Before the second scan the hero is the starting point itself; after it, the change.
+  // The hero follows the best available story: change through the arc once a
+  // second scan exists; until then, Day 0 against the last visit; failing
+  // that, the starting point itself.
   const heroValue =
-    hero.mode === 'delta'
-      ? fmtSigned(hero.leanDeltaKg, 1)
-      : hero.mode === 'baseline' && hero.dayZero
-        ? hero.dayZero.leanMassKg.toFixed(1)
-        : fmtSigned(hero.weightDeltaKg, 1)
+    hero.mode === 'arc' && hero.sinceDayZero
+      ? fmtMassDelta(hero.sinceDayZero.leanKg, 1, false)
+      : hero.mode === 'history' && hero.vsPrevious
+        ? fmtMassDelta(hero.vsPrevious.fatKg, 1, false)
+        : hero.dayZero
+          ? fmtMassValue(hero.dayZero.leanMassKg)
+          : fmtMassDelta(hero.weightDeltaKg, 1, false)
   const heroLabel =
-    hero.mode === 'delta'
-      ? 'kg lean mass since Day 0'
-      : hero.mode === 'baseline'
-        ? 'kg lean mass at Day 0. The number to move first.'
-        : 'kg since Day 0'
+    hero.mode === 'arc'
+      ? `${MASS_UNIT} lean mass since Day 0`
+      : hero.mode === 'history' && hero.vsPrevious
+        ? `${MASS_UNIT} of fat since the last scan, ${hero.vsPrevious.from.label ?? fmtDate(hero.vsPrevious.from.date, 'MMM yyyy')}`
+        : hero.mode === 'baseline'
+          ? `${MASS_UNIT} lean mass at Day 0. The number to move first.`
+          : `${MASS_UNIT} since Day 0`
   const updated = last(snapshot.vitals)?.date ?? snapshot.today
 
   return (
@@ -91,18 +97,35 @@ export default async function HealthPage() {
           <p className="max-w-[16rem] text-lg leading-snug text-stone-500 md:text-xl">{heroLabel}</p>
         </div>
         <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-3 text-sm">
-          {hero.mode === 'delta' ? (
-            <Fact label="Fat mass" value={fmtSigned(hero.fatDeltaKg, 1, ' kg')} />
-          ) : (
-            <Fact label="Fat mass" value={hero.latest ? `${hero.latest.fatMassKg.toFixed(1)} kg` : '—'} />
+          {hero.mode === 'arc' && hero.sinceDayZero && (
+            <>
+              <Fact label="Fat mass" value={fmtMassDelta(hero.sinceDayZero.fatKg)} />
+              <Fact label="Body fat" value={`${hero.sinceDayZero.to.bodyFatPct.toFixed(1)}%`} sub={fmtSigned(hero.sinceDayZero.bodyFatPct, 1, ' pts')} />
+              <Fact label="Weight" value={fmtMass(hero.weightNowKg)} sub={fmtMassDelta(hero.weightDeltaKg)} />
+            </>
           )}
-          <Fact label="Body fat" value={hero.latest ? `${hero.latest.bodyFatPct.toFixed(1)}%` : '—'} />
-          <Fact
-            label="Weight"
-            value={hero.weightNowKg ? `${hero.weightNowKg.toFixed(1)} kg` : '—'}
-            sub={hero.mode === 'delta' ? fmtSigned(hero.weightDeltaKg, 1) : undefined}
-          />
-          {hero.mode === 'baseline' && hero.latest?.rmrKcal && <Fact label="RMR" value={`${fmtNumber(hero.latest.rmrKcal)} kcal`} />}
+          {hero.mode === 'history' && hero.vsPrevious && hero.dayZero && (
+            <>
+              <Fact label="Lean mass" value={fmtMass(hero.dayZero.leanMassKg)} sub={fmtMassDelta(hero.vsPrevious.leanKg)} />
+              <Fact label="Body fat" value={`${hero.dayZero.bodyFatPct.toFixed(1)}%`} sub={fmtSigned(hero.vsPrevious.bodyFatPct, 1, ' pts')} />
+              <Fact label="Weight" value={fmtMass(hero.dayZero.weightKg)} sub={fmtMassDelta(hero.vsPrevious.weightKg)} />
+              {hero.vsFirst && hero.vsFirst.from !== hero.vsPrevious.from && (
+                <Fact
+                  label={`Since ${hero.vsFirst.from.label ?? fmtDate(hero.vsFirst.from.date, 'MMM yyyy')}`}
+                  value={`fat ${fmtMassDelta(hero.vsFirst.fatKg)} · lean ${fmtMassDelta(hero.vsFirst.leanKg)} · ${fmtSigned(hero.vsFirst.bodyFatPct, 1, ' pts')}`}
+                  muted
+                />
+              )}
+            </>
+          )}
+          {hero.mode === 'baseline' && hero.dayZero && (
+            <>
+              <Fact label="Fat mass" value={fmtMass(hero.dayZero.fatMassKg)} />
+              <Fact label="Body fat" value={`${hero.dayZero.bodyFatPct.toFixed(1)}%`} />
+              <Fact label="Weight" value={fmtMass(hero.dayZero.weightKg)} />
+              {hero.dayZero.rmrKcal && <Fact label="RMR" value={`${fmtNumber(hero.dayZero.rmrKcal)} kcal`} />}
+            </>
+          )}
           {phase.current && <Fact label="Goal" value={phase.current.goal} muted />}
         </dl>
         <PhaseArc arc={arc} phase={phase} />
@@ -123,10 +146,10 @@ export default async function HealthPage() {
         <DetailSection
           id="body"
           title="Body"
-          headline={hero.weightNowKg ? `${hero.weightNowKg.toFixed(1)} kg` : '—'}
+          headline={fmtMass(hero.weightNowKg)}
           aside={
             hero.latest
-              ? `${hero.latest.leanMassKg.toFixed(1)} kg lean · ${hero.latest.fatMassKg.toFixed(1)} kg fat · ${snapshot.compositions.length} DEXA scan${snapshot.compositions.length === 1 ? '' : 's'}`
+              ? `${fmtMass(hero.latest.leanMassKg)} lean · ${fmtMass(hero.latest.fatMassKg)} fat · ${snapshot.compositions.length} DEXA scan${snapshot.compositions.length === 1 ? '' : 's'}`
               : undefined
           }
           defaultOpen
@@ -187,7 +210,7 @@ export default async function HealthPage() {
         </div>
         <div>
           <Eyebrow className="mb-1.5">DEXA</Eyebrow>
-          Lean, fat and bone mass, regional fat, lean balance. GE Lunar Prodigy at ARC South 1st: Day 0, then every 8 weeks, same machine.
+          Lean, fat and bone mass, regional fat, lean balance. The arc is measured on one machine (GE Lunar Prodigy, ARC South 1st): Day 0, then every 8 weeks. Earlier scans from other facilities are shown for context only.
         </div>
         <div>
           <Eyebrow className="mb-1.5">Food log</Eyebrow>

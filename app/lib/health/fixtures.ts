@@ -20,6 +20,7 @@ import type {
   Workout,
 } from '@/app/types/health'
 import { DEXA_DAY_ZERO } from './data/dexa-2026-09-08-arc'
+import { DEXA_HISTORY } from './data/dexa-history'
 
 /**
  * Fixtures for the /health page.
@@ -136,7 +137,7 @@ export function buildFixtureSnapshot(today = new Date()): HealthSnapshot {
       startDate: iso(dayZero),
       endDate: null,
       plannedWeeks: BUILD_WEEKS,
-      goal: 'Add lean mass at ~0.25 kg/week. Keep fat mass flat, sleep above 7h.',
+      goal: 'Add lean mass at ~0.5 lb/week. Keep fat mass flat, sleep above 7h.',
     },
     {
       id: 'phase-cut-1',
@@ -145,7 +146,7 @@ export function buildFixtureSnapshot(today = new Date()): HealthSnapshot {
       startDate: iso(buildEnd),
       endDate: null,
       plannedWeeks: CUT_WEEKS,
-      goal: 'Bring body fat from 23% toward 15% while holding lean mass within 1 kg.',
+      goal: 'Bring body fat from 23% toward 15% while holding lean mass within 2 lb.',
     },
   ]
 
@@ -343,14 +344,14 @@ export function buildFixtureSnapshot(today = new Date()): HealthSnapshot {
     source: 'coros',
   }))
 
-  const compositions: BodyComposition[] = [DEXA_DAY_ZERO]
+  const compositions: BodyComposition[] = DEXA_HISTORY
 
   const focus: FocusNote[] = [
     {
       weekStart: iso(dayZero),
-      measured: 'Day 0 DEXA: 58.1 kg lean, 18.4 kg fat, 23.1% body fat. RMR 1,830 kcal.',
-      noticed: 'Fat sits mostly in the trunk (24.8%) and android region (25.6%). Lean mass is symmetric to within 0.6 kg.',
-      action: 'Build starts today: 3,000 kcal, 180 g protein, four lifts and two runs a week. Re-scan on the same machine at week 8.',
+      measured: 'Day 0 DEXA: 128.1 lb lean, 40.6 lb fat, 23.1%. Fat −14.5 lb and lean +1.3 lb since the Jun 2025 scan.',
+      noticed: 'The Jun 2025 peak is reversed; body fat is back near the 2023 level with 2.9 lb less lean. Fat sits mostly in the trunk (24.8%).',
+      action: 'Build starts today: 3,000 kcal, 180 g protein, four lifts and two runs a week. Re-scan on the ARC Prodigy at week 8.',
     },
   ]
 

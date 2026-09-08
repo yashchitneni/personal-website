@@ -121,14 +121,42 @@ export function getArc(snapshot: HealthSnapshot): ArcState {
 /* Hero                                                                */
 /* ------------------------------------------------------------------ */
 
+export interface ScanDelta {
+  from: BodyComposition
+  to: BodyComposition
+  leanKg: number
+  fatKg: number
+  bodyFatPct: number
+  weightKg: number
+}
+
+const scanDelta = (from: BodyComposition, to: BodyComposition): ScanDelta => ({
+  from,
+  to,
+  leanKg: to.leanMassKg - from.leanMassKg,
+  fatKg: to.fatMassKg - from.fatMassKg,
+  bodyFatPct: to.bodyFatPct - from.bodyFatPct,
+  weightKg: to.weightKg - from.weightKg,
+})
+
 export interface HeroNumbers {
-  /** baseline: only the Day 0 scan exists, so the hero shows the starting point; delta: change since Day 0 */
-  mode: 'baseline' | 'delta' | 'none'
+  /**
+   * arc: a scan after Day 0 exists, show change since Day 0
+   * history: only Day 0 so far but earlier scans exist, show change vs the last visit
+   * baseline: Day 0 alone, show the starting point
+   */
+  mode: 'arc' | 'history' | 'baseline' | 'none'
+  /** the scan that opens the arc (latest scan on or before the first phase start) */
   dayZero: BodyComposition | null
+  /** scans before Day 0, oldest first — other facilities / machines */
+  history: BodyComposition[]
   latest: BodyComposition | null
-  leanDeltaKg: number | null
-  fatDeltaKg: number | null
-  bodyFatDeltaPct: number | null
+  /** latest vs Day 0, once the arc has a second scan */
+  sinceDayZero: ScanDelta | null
+  /** Day 0 vs the scan before it */
+  vsPrevious: ScanDelta | null
+  /** Day 0 vs the earliest scan on record */
+  vsFirst: ScanDelta | null
   /** 7-day average of daily weigh-ins */
   weightNowKg: number | null
   /** vs the Day 0 scan weight */
@@ -137,18 +165,25 @@ export interface HeroNumbers {
 
 export function getHeroNumbers(snapshot: HealthSnapshot): HeroNumbers {
   const scans = [...snapshot.compositions].sort((a, b) => a.date.localeCompare(b.date))
-  const dayZero = scans[0] ?? null
+  const arcStart = [...snapshot.phases].sort((a, b) => a.startDate.localeCompare(b.startDate))[0]?.startDate ?? null
+  const dayZero = (arcStart ? scans.filter((s) => s.date <= arcStart).pop() : null) ?? scans[0] ?? null
+  const dayZeroIdx = dayZero ? scans.indexOf(dayZero) : -1
+  const history = dayZeroIdx > 0 ? scans.slice(0, dayZeroIdx) : []
+  const previous = last(history)
   const latest = last(scans)
-  const hasDelta = !!dayZero && !!latest && latest !== dayZero
+  const arc = !!dayZero && !!latest && latest.date > dayZero.date
+
   const weightNow = avg(lastN(snapshot.bodyProfile, 7).map((b) => b.weightKg))
   const weightStart = dayZero?.weightKg ?? avg(snapshot.bodyProfile.slice(0, 7).map((b) => b.weightKg))
+
   return {
-    mode: hasDelta ? 'delta' : dayZero ? 'baseline' : 'none',
+    mode: !dayZero ? 'none' : arc ? 'arc' : previous ? 'history' : 'baseline',
     dayZero,
+    history,
     latest,
-    leanDeltaKg: hasDelta ? latest.leanMassKg - dayZero.leanMassKg : null,
-    fatDeltaKg: hasDelta ? latest.fatMassKg - dayZero.fatMassKg : null,
-    bodyFatDeltaPct: hasDelta ? latest.bodyFatPct - dayZero.bodyFatPct : null,
+    sinceDayZero: arc ? scanDelta(dayZero, latest) : null,
+    vsPrevious: dayZero && previous ? scanDelta(previous, dayZero) : null,
+    vsFirst: dayZero && history[0] ? scanDelta(history[0], dayZero) : null,
     weightNowKg: weightNow,
     weightDeltaKg: weightNow !== null && weightStart !== null ? weightNow - weightStart : null,
   }

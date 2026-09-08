@@ -1,4 +1,4 @@
-import { fmtDate, fmtMinutes, fmtNumber, fmtSigned } from '@/app/lib/health/format'
+import { fmtDate, fmtMassDelta, fmtMassValue, fmtMinutes, fmtNumber, MASS_UNIT } from '@/app/lib/health/format'
 import { cn } from '@/app/lib/utils'
 import type { WeeklyDelta } from '@/app/types/health'
 import { Eyebrow } from './primitives'
@@ -7,7 +7,7 @@ interface WeeklyLedgerProps {
   weeks: WeeklyDelta[]
 }
 
-const COLS = ['Week', 'Weight', 'Δ', 'Sleep', 'HRV', 'RHR', 'Load', 'Sessions', 'Protein', 'kcal']
+const COLS = ['Week', `Weight ${MASS_UNIT}`, 'Δ', 'Sleep', 'HRV', 'RHR', 'Load', 'Sessions', 'Protein', 'kcal']
 
 /** Change over time, one row per week. The core of the page: is the arc working? */
 export function WeeklyLedger({ weeks }: WeeklyLedgerProps) {
@@ -39,8 +39,8 @@ export function WeeklyLedger({ weeks }: WeeklyLedgerProps) {
                   </span>
                   <span className="ml-2 text-xs text-stone-400">{fmtDate(w.weekStart)}</span>
                 </td>
-                <Cell>{w.weightAvgKg === null ? '—' : `${w.weightAvgKg.toFixed(1)}`}</Cell>
-                <Cell className={w.weightDeltaKg === null ? 'text-stone-400' : w.weightDeltaKg > 0 ? 'text-stone-900' : 'text-stone-500'}>{fmtSigned(w.weightDeltaKg, 1)}</Cell>
+                <Cell>{fmtMassValue(w.weightAvgKg)}</Cell>
+                <Cell className={w.weightDeltaKg === null ? 'text-stone-400' : w.weightDeltaKg > 0 ? 'text-stone-900' : 'text-stone-500'}>{fmtMassDelta(w.weightDeltaKg, 1, false)}</Cell>
                 <Cell>{w.sleepDurationAvgMin === null ? '—' : fmtMinutes(w.sleepDurationAvgMin)}</Cell>
                 <Cell>{fmtNumber(w.hrvAvgMs)}</Cell>
                 <Cell>{fmtNumber(w.restingHrAvg)}</Cell>
