@@ -20,7 +20,7 @@ This is a [Next.js](https://nextjs.org) project that serves as a personal websit
 - Responsive design
 - Authentication with Clerk
 - Newsletter subscription
-- Biofeedback tracking and visualization
+- Public health / body-recomposition page at `/health` (Coros, DEXA, food log, check-ins; see `app/lib/health`)
 - Payment integration with Stripe
 
 ## Getting Started
