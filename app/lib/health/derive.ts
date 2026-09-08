@@ -122,12 +122,16 @@ export function getArc(snapshot: HealthSnapshot): ArcState {
 /* ------------------------------------------------------------------ */
 
 export interface HeroNumbers {
+  /** baseline: only the Day 0 scan exists, so the hero shows the starting point; delta: change since Day 0 */
+  mode: 'baseline' | 'delta' | 'none'
   dayZero: BodyComposition | null
   latest: BodyComposition | null
   leanDeltaKg: number | null
   fatDeltaKg: number | null
   bodyFatDeltaPct: number | null
+  /** 7-day average of daily weigh-ins */
   weightNowKg: number | null
+  /** vs the Day 0 scan weight */
   weightDeltaKg: number | null
 }
 
@@ -135,14 +139,16 @@ export function getHeroNumbers(snapshot: HealthSnapshot): HeroNumbers {
   const scans = [...snapshot.compositions].sort((a, b) => a.date.localeCompare(b.date))
   const dayZero = scans[0] ?? null
   const latest = last(scans)
+  const hasDelta = !!dayZero && !!latest && latest !== dayZero
   const weightNow = avg(lastN(snapshot.bodyProfile, 7).map((b) => b.weightKg))
-  const weightStart = avg(snapshot.bodyProfile.slice(0, 7).map((b) => b.weightKg))
+  const weightStart = dayZero?.weightKg ?? avg(snapshot.bodyProfile.slice(0, 7).map((b) => b.weightKg))
   return {
+    mode: hasDelta ? 'delta' : dayZero ? 'baseline' : 'none',
     dayZero,
     latest,
-    leanDeltaKg: dayZero && latest && latest !== dayZero ? latest.leanMassKg - dayZero.leanMassKg : null,
-    fatDeltaKg: dayZero && latest && latest !== dayZero ? latest.fatMassKg - dayZero.fatMassKg : null,
-    bodyFatDeltaPct: dayZero && latest && latest !== dayZero ? latest.bodyFatPct - dayZero.bodyFatPct : null,
+    leanDeltaKg: hasDelta ? latest.leanMassKg - dayZero.leanMassKg : null,
+    fatDeltaKg: hasDelta ? latest.fatMassKg - dayZero.fatMassKg : null,
+    bodyFatDeltaPct: hasDelta ? latest.bodyFatPct - dayZero.bodyFatPct : null,
     weightNowKg: weightNow,
     weightDeltaKg: weightNow !== null && weightStart !== null ? weightNow - weightStart : null,
   }
@@ -235,25 +241,36 @@ export function getMetricStrip(snapshot: HealthSnapshot): MetricSummary[] {
 /* Weekly deltas                                                       */
 /* ------------------------------------------------------------------ */
 
+/**
+ * One row per week, aligned to Day 0 (the first phase start). Weeks before
+ * Day 0 are included as baseline (weekIndex ≤ 0) when there is data for them.
+ */
 export function getWeeklyDeltas(snapshot: HealthSnapshot): WeeklyDelta[] {
   const start = snapshot.phases.length
     ? [...snapshot.phases].sort((a, b) => a.startDate.localeCompare(b.startDate))[0].startDate
     : snapshot.bodyProfile[0]?.date ?? snapshot.today
   const startDate = parseISO(start)
   const weekOf = (date: ISODate) => Math.floor(differenceInCalendarDays(parseISO(date), startDate) / 7)
-  const totalWeeks = weekOf(snapshot.today) + 1
+  const earliest = [snapshot.bodyProfile[0]?.date, snapshot.sleep[0]?.date, snapshot.vitals[0]?.date]
+    .filter((d): d is string => !!d)
+    .sort()[0]
+  const firstWeek = earliest ? Math.min(0, weekOf(earliest)) : 0
+  const lastWeek = weekOf(snapshot.today)
 
   const rows: WeeklyDelta[] = []
   let prevWeight: number | null = null
-  for (let w = 0; w < totalWeeks; w++) {
+  for (let w = firstWeek; w <= lastWeek; w++) {
     const inWeek = <T extends { date: ISODate }>(rows: T[]) => rows.filter((r) => weekOf(r.date) === w)
     const weight = avg(inWeek(snapshot.bodyProfile).map((b) => b.weightKg))
     const sleep = inWeek(snapshot.sleep)
     const vitals = inWeek(snapshot.vitals)
     const food = inWeek(snapshot.food)
+    if (weight === null && sleep.length === 0 && vitals.length === 0) continue
     rows.push({
       weekStart: addDays(startDate, w * 7).toISOString().slice(0, 10),
-      weekIndex: w + 1,
+      // 1 is the week that starts on Day 0; 0, −1, … are baseline weeks
+      weekIndex: w >= 0 ? w + 1 : w,
+      baseline: w < 0,
       weightAvgKg: weight,
       weightDeltaKg: weight !== null && prevWeight !== null ? weight - prevWeight : null,
       sleepScoreAvg: avg(sleep.map((s) => s.score)),

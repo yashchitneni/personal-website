@@ -12,9 +12,13 @@ const COLS = ['Week', 'Weight', 'Δ', 'Sleep', 'HRV', 'RHR', 'Load', 'Sessions',
 /** Change over time, one row per week. The core of the page: is the arc working? */
 export function WeeklyLedger({ weeks }: WeeklyLedgerProps) {
   const rows = [...weeks].reverse()
+  const baselineCount = weeks.filter((w) => w.baseline).length
   return (
     <section aria-label="Week by week">
-      <Eyebrow className="mb-4">Week by week</Eyebrow>
+      <Eyebrow className="mb-4">
+        Week by week
+        {baselineCount > 0 && <span className="text-stone-400"> · negative weeks are the baseline before Day 0</span>}
+      </Eyebrow>
       <div className="-mx-1 overflow-x-auto px-1">
         <table className="w-full min-w-[720px] border-collapse text-sm">
           <thead>
@@ -28,9 +32,11 @@ export function WeeklyLedger({ weeks }: WeeklyLedgerProps) {
           </thead>
           <tbody>
             {rows.map((w, idx) => (
-              <tr key={w.weekStart} className={cn('border-b border-stone-100 last:border-0', idx === 0 && 'text-stone-900')}>
+              <tr key={w.weekStart} className={cn('border-b border-stone-100 last:border-0', idx === 0 && 'text-stone-900', w.baseline && 'text-stone-500')}>
                 <td className="py-3 text-left">
-                  <span className={cn('tabular-nums', idx === 0 ? 'text-stone-900' : 'text-stone-500')}>{w.weekIndex}</span>
+                  <span className={cn('tabular-nums', idx === 0 ? 'text-stone-900' : w.baseline ? 'text-stone-400' : 'text-stone-500')}>
+                    {w.weekIndex < 0 ? `−${Math.abs(w.weekIndex)}` : w.weekIndex}
+                  </span>
                   <span className="ml-2 text-xs text-stone-400">{fmtDate(w.weekStart)}</span>
                 </td>
                 <Cell>{w.weightAvgKg === null ? '—' : `${w.weightAvgKg.toFixed(1)}`}</Cell>

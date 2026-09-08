@@ -34,14 +34,16 @@ interface TableProps {
   numeric?: number[]
   className?: string
   caption?: string
+  /** for narrow tables that should never need to scroll */
+  compact?: boolean
 }
 
 /** Hairline table with tabular numbers; scrolls horizontally on small screens. */
-export function Table({ head, rows, numeric = [], className, caption }: TableProps) {
+export function Table({ head, rows, numeric = [], className, caption, compact = false }: TableProps) {
   const align = (i: number) => (numeric.includes(i) ? 'text-right' : 'text-left')
   return (
     <div className={cn('-mx-1 overflow-x-auto px-1', className)}>
-      <table className="w-full min-w-[520px] border-collapse text-sm">
+      <table className={cn('w-full border-collapse text-sm', !compact && 'min-w-[520px]')}>
         {caption && <caption className="sr-only">{caption}</caption>}
         <thead>
           <tr className="border-b border-stone-200">

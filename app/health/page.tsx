@@ -45,8 +45,19 @@ export default async function HealthPage() {
   const energy = avg(lastN(snapshot.checkins, 7).map((c) => c.energy))
   const frontPhotos = snapshot.photos.filter((p) => p.pose === 'front').length
 
-  const heroValue = hero.leanDeltaKg !== null ? fmtSigned(hero.leanDeltaKg, 1) : fmtSigned(hero.weightDeltaKg, 1)
-  const heroLabel = hero.leanDeltaKg !== null ? 'kg lean mass since Day 0' : 'kg since Day 0'
+  // Before the second scan the hero is the starting point itself; after it, the change.
+  const heroValue =
+    hero.mode === 'delta'
+      ? fmtSigned(hero.leanDeltaKg, 1)
+      : hero.mode === 'baseline' && hero.dayZero
+        ? hero.dayZero.leanMassKg.toFixed(1)
+        : fmtSigned(hero.weightDeltaKg, 1)
+  const heroLabel =
+    hero.mode === 'delta'
+      ? 'kg lean mass since Day 0'
+      : hero.mode === 'baseline'
+        ? 'kg lean mass at Day 0. The number to move first.'
+        : 'kg since Day 0'
   const updated = last(snapshot.vitals)?.date ?? snapshot.today
 
   return (
@@ -80,9 +91,18 @@ export default async function HealthPage() {
           <p className="max-w-[16rem] text-lg leading-snug text-stone-500 md:text-xl">{heroLabel}</p>
         </div>
         <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-3 text-sm">
-          <Fact label="Fat mass" value={fmtSigned(hero.fatDeltaKg, 1, ' kg')} />
+          {hero.mode === 'delta' ? (
+            <Fact label="Fat mass" value={fmtSigned(hero.fatDeltaKg, 1, ' kg')} />
+          ) : (
+            <Fact label="Fat mass" value={hero.latest ? `${hero.latest.fatMassKg.toFixed(1)} kg` : '—'} />
+          )}
           <Fact label="Body fat" value={hero.latest ? `${hero.latest.bodyFatPct.toFixed(1)}%` : '—'} />
-          <Fact label="Weight" value={hero.weightNowKg ? `${hero.weightNowKg.toFixed(1)} kg` : '—'} sub={fmtSigned(hero.weightDeltaKg, 1)} />
+          <Fact
+            label="Weight"
+            value={hero.weightNowKg ? `${hero.weightNowKg.toFixed(1)} kg` : '—'}
+            sub={hero.mode === 'delta' ? fmtSigned(hero.weightDeltaKg, 1) : undefined}
+          />
+          {hero.mode === 'baseline' && hero.latest?.rmrKcal && <Fact label="RMR" value={`${fmtNumber(hero.latest.rmrKcal)} kcal`} />}
           {phase.current && <Fact label="Goal" value={phase.current.goal} muted />}
         </dl>
         <PhaseArc arc={arc} phase={phase} />
@@ -104,7 +124,11 @@ export default async function HealthPage() {
           id="body"
           title="Body"
           headline={hero.weightNowKg ? `${hero.weightNowKg.toFixed(1)} kg` : '—'}
-          aside={hero.latest ? `${hero.latest.leanMassKg.toFixed(1)} kg lean · ${hero.latest.fatMassKg.toFixed(1)} kg fat · ${snapshot.compositions.length} scans` : undefined}
+          aside={
+            hero.latest
+              ? `${hero.latest.leanMassKg.toFixed(1)} kg lean · ${hero.latest.fatMassKg.toFixed(1)} kg fat · ${snapshot.compositions.length} DEXA scan${snapshot.compositions.length === 1 ? '' : 's'}`
+              : undefined
+          }
           defaultOpen
         >
           <BodyDetail hero={hero} compositions={snapshot.compositions} bodyProfile={snapshot.bodyProfile} />
@@ -136,7 +160,12 @@ export default async function HealthPage() {
           <FuelDetail food={snapshot.food} targets={snapshot.targets} />
         </DetailSection>
 
-        <DetailSection id="photos" title="Photos" headline={`Week ${Math.max(0, phase.week - 1)}`} aside={`${frontPhotos} weekly check-ins`}>
+        <DetailSection
+          id="photos"
+          title="Photos"
+          headline={phase.week <= 1 ? 'Day 0' : `Week ${phase.week - 1}`}
+          aside={`${frontPhotos} weekly check-in${frontPhotos === 1 ? '' : 's'}`}
+        >
           <PhotosDetail photos={snapshot.photos} dayZero={hero.dayZero?.date ?? phase.current?.startDate ?? null} />
         </DetailSection>
 
@@ -158,7 +187,7 @@ export default async function HealthPage() {
         </div>
         <div>
           <Eyebrow className="mb-1.5">DEXA</Eyebrow>
-          Lean, fat, visceral and bone mass. Day 0, then every 8 weeks, same machine.
+          Lean, fat and bone mass, regional fat, lean balance. GE Lunar Prodigy at ARC South 1st: Day 0, then every 8 weeks, same machine.
         </div>
         <div>
           <Eyebrow className="mb-1.5">Food log</Eyebrow>
