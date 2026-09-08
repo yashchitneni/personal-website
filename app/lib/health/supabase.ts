@@ -77,8 +77,10 @@ export async function fetchSupabaseSnapshot(client: SupabaseClient, today = new 
   const phases = (phaseRows ?? []).map((r) => fromRow<HealthSnapshot['phases'][number]>(r))
 
   const since = phases[0]?.startDate ?? subDays(today, 120).toISOString().slice(0, 10)
-  const read = async <T,>(key: SeriesKey, dateColumn = 'date'): Promise<T[]> => {
-    const { data, error } = await client.from(HEALTH_TABLES[key].table).select('*').gte(dateColumn, since).order(dateColumn)
+  const read = async <T,>(key: SeriesKey, dateColumn = 'date', { all = false } = {}): Promise<T[]> => {
+    let query = client.from(HEALTH_TABLES[key].table).select('*').order(dateColumn)
+    if (!all) query = query.gte(dateColumn, since)
+    const { data, error } = await query
     if (error) throw error
     return (data ?? []).map((r) => fromRow<T>(r))
   }
@@ -91,7 +93,8 @@ export async function fetchSupabaseSnapshot(client: SupabaseClient, today = new 
       read<HealthSnapshot['fitness'][number]>('fitness'),
       read<HealthSnapshot['workouts'][number]>('workouts'),
       read<HealthSnapshot['bodyProfile'][number]>('bodyProfile'),
-      read<HealthSnapshot['compositions'][number]>('compositions'),
+      // scans predate the arc (other facilities); keep every one on record
+      read<HealthSnapshot['compositions'][number]>('compositions', 'date', { all: true }),
       read<FoodEntry>('food'),
       read<HealthSnapshot['photos'][number]>('photos'),
       read<HealthSnapshot['checkins'][number]>('checkins'),

@@ -43,8 +43,36 @@ export function fmtSigned(n: number | null | undefined, dp = 1, unit = ''): stri
   return `${sign}${Math.abs(rounded).toFixed(dp)}${unit}`
 }
 
-export function fmtKg(n: number | null | undefined, dp = 1): string {
-  return n === null || n === undefined ? '—' : `${n.toFixed(dp)} kg`
+/* ------------------------------------------------------------------ */
+/* Mass. Stored in kg (Coros / SI); displayed in the owner's unit.     */
+/* ------------------------------------------------------------------ */
+
+export const LB_PER_KG = 2.20462
+export const MASS_UNIT: 'lb' | 'kg' = 'lb'
+
+export const lbToKg = (lb: number) => Math.round((lb / LB_PER_KG) * 100) / 100
+
+/** kg → display units */
+export function toMass(kg: number): number {
+  return MASS_UNIT === 'lb' ? kg * LB_PER_KG : kg
+}
+
+/** 176.4 lb */
+export function fmtMass(kg: number | null | undefined, dp = 1): string {
+  if (kg === null || kg === undefined || Number.isNaN(kg)) return '—'
+  return `${fmtNumber(toMass(kg), dp)} ${MASS_UNIT}`
+}
+
+/** number only, for hero-sized figures: 176.4 */
+export function fmtMassValue(kg: number | null | undefined, dp = 1): string {
+  if (kg === null || kg === undefined || Number.isNaN(kg)) return '—'
+  return fmtNumber(toMass(kg), dp)
+}
+
+/** −14.5 lb */
+export function fmtMassDelta(kg: number | null | undefined, dp = 1, withUnit = true): string {
+  if (kg === null || kg === undefined || Number.isNaN(kg)) return '—'
+  return fmtSigned(toMass(kg), dp, withUnit ? ` ${MASS_UNIT}` : '')
 }
 
 /** 7h 24m */

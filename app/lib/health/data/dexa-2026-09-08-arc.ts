@@ -1,4 +1,5 @@
 import type { BodyComposition } from '@/app/types/health'
+import { lbToKg as kg } from '../format'
 
 /**
  * Day 0 DEXA — ARC South 1st (Austin), GE Lunar Prodigy, measured 2026-09-08.
@@ -6,9 +7,6 @@ import type { BodyComposition } from '@/app/types/health'
  * Fat Distribution" reports. The report is in pounds; the model is in kg, so
  * the source numbers are kept here verbatim and converted once.
  */
-
-export const LB_PER_KG = 2.20462
-const kg = (lb: number) => Math.round((lb / LB_PER_KG) * 100) / 100
 
 /** Verbatim report values (lb / % / in). Kept so the conversion is auditable. */
 export const DEXA_2026_09_08_REPORT = {
