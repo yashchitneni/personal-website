@@ -21,6 +21,7 @@ import type {
 } from '@/app/types/health'
 import { DEXA_DAY_ZERO } from './data/dexa-2026-09-08-arc'
 import { DEXA_HISTORY } from './data/dexa-history'
+import { GOALS, SUPPLEMENTS } from './data/plan'
 
 /**
  * Fixtures for the /health page.
@@ -137,7 +138,7 @@ export function buildFixtureSnapshot(today = new Date()): HealthSnapshot {
       startDate: iso(dayZero),
       endDate: null,
       plannedWeeks: BUILD_WEEKS,
-      goal: 'Add lean mass at ~0.5 lb/week. Keep fat mass flat, sleep above 7h.',
+      goal: '+5 lb DEXA lean by Nov 8. Modest fat gain allowed; lean first. Sleep above 7h.',
     },
     {
       id: 'phase-cut-1',
@@ -351,7 +352,7 @@ export function buildFixtureSnapshot(today = new Date()): HealthSnapshot {
       weekStart: iso(dayZero),
       measured: 'Day 0 DEXA: 128.1 lb lean, 40.6 lb fat, 23.1%. Fat −14.5 lb and lean +1.3 lb since the Jun 2025 scan.',
       noticed: 'The Jun 2025 peak is reversed; body fat is back near the 2023 level with 2.9 lb less lean. Fat sits mostly in the trunk (24.8%).',
-      action: 'Build starts today: 3,000 kcal, 180 g protein, four lifts and two runs a week. Re-scan on the ARC Prodigy at week 8.',
+      action: 'Build starts today: 3,000 kcal, 180 g protein, four lifts and two runs a week. Creatine load this week, then 10 g/day. Re-scan on the ARC Prodigy at week 8.',
     },
   ]
 
@@ -361,6 +362,9 @@ export function buildFixtureSnapshot(today = new Date()): HealthSnapshot {
     today: iso(today),
     phases,
     focus,
+    goals: GOALS,
+    supplements: SUPPLEMENTS,
+    supplementLog: [],
     targets: { calories: 3000, proteinG: 180, carbsG: 340, fatG: 90 },
     sleep,
     vitals,

@@ -26,6 +26,46 @@ create table if not exists health_focus_notes (
   synced_at  timestamptz not null default now()
 );
 
+-- ---------------------------------------------------------------- goals
+create table if not exists health_goals (
+  id           text primary key,
+  metric       text not null check (metric in ('lean_mass', 'fat_mass', 'body_fat_pct', 'weight', 'vo2max', 'custom')),
+  label        text not null,
+  start_date   date not null,
+  target_date  date not null,
+  start_value  numeric(7,2) not null,                          -- canonical unit (kg, %, ml/kg/min)
+  target_value numeric(7,2) not null,
+  unit         text not null default 'kg',
+  measured_by  text not null default 'dexa' check (measured_by in ('dexa', 'daily')),
+  status       text not null default 'active' check (status in ('active', 'met', 'missed', 'dropped')),
+  notes        text,
+  synced_at    timestamptz not null default now()
+);
+
+-- ---------------------------------------------------------------- supplements
+create table if not exists health_supplement_protocols (
+  id        text primary key,
+  name      text not null,
+  category  text not null check (category in ('performance', 'cognitive', 'recovery', 'general')),
+  status    text not null default 'active' check (status in ('active', 'planned', 'paused', 'stopped')),
+  phases    jsonb not null default '[]'::jsonb,                 -- [{label, startDate, endDate, dose: {amount, unit, perDay, timing}, notes}]
+  rationale text,
+  notes     text,
+  synced_at timestamptz not null default now()
+);
+
+create table if not exists health_supplement_log (
+  id            text primary key,
+  date          date not null,
+  time          text,
+  supplement_id text not null references health_supplement_protocols (id),
+  amount        numeric(8,2) not null,
+  unit          text not null check (unit in ('g', 'mg', 'mcg', 'iu', 'ml')),
+  source        text not null default 'chat' check (source in ('chat', 'manual')),
+  synced_at     timestamptz not null default now()
+);
+create index if not exists health_supplement_log_date_idx on health_supplement_log (date);
+
 -- ---------------------------------------------------------------- coros
 create table if not exists health_sleep (
   date         date primary key,
@@ -219,7 +259,8 @@ begin
     'health_phases', 'health_focus_notes', 'health_sleep', 'health_daily_vitals',
     'health_training_load', 'health_fitness_assessments', 'health_workouts',
     'health_body_profile', 'health_body_composition', 'health_food_entries',
-    'health_nutrition_targets', 'health_progress_photos', 'health_checkins'
+    'health_nutrition_targets', 'health_progress_photos', 'health_checkins',
+    'health_goals', 'health_supplement_protocols', 'health_supplement_log'
   ] loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists "public read" on %I', t);

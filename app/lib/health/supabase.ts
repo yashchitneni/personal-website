@@ -32,6 +32,9 @@ export const HEALTH_TABLES: Record<SeriesKey, { table: string; conflict: string 
   checkins: { table: 'health_checkins', conflict: 'date' },
   phases: { table: 'health_phases', conflict: 'id' },
   focus: { table: 'health_focus_notes', conflict: 'week_start' },
+  goals: { table: 'health_goals', conflict: 'id' },
+  supplements: { table: 'health_supplement_protocols', conflict: 'id' },
+  supplementLog: { table: 'health_supplement_log', conflict: 'id' },
 }
 
 const snake = (s: string) => s.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`)
@@ -85,7 +88,7 @@ export async function fetchSupabaseSnapshot(client: SupabaseClient, today = new 
     return (data ?? []).map((r) => fromRow<T>(r))
   }
 
-  const [sleep, vitals, load, fitness, workouts, bodyProfile, compositions, foodEntries, photos, checkins, focus] =
+  const [sleep, vitals, load, fitness, workouts, bodyProfile, compositions, foodEntries, photos, checkins, focus, goals, supplements, supplementLog] =
     await Promise.all([
       read<HealthSnapshot['sleep'][number]>('sleep'),
       read<HealthSnapshot['vitals'][number]>('vitals'),
@@ -99,6 +102,9 @@ export async function fetchSupabaseSnapshot(client: SupabaseClient, today = new 
       read<HealthSnapshot['photos'][number]>('photos'),
       read<HealthSnapshot['checkins'][number]>('checkins'),
       read<HealthSnapshot['focus'][number]>('focus', 'week_start'),
+      read<HealthSnapshot['goals'][number]>('goals', 'start_date', { all: true }),
+      read<HealthSnapshot['supplements'][number]>('supplements', 'id', { all: true }),
+      read<HealthSnapshot['supplementLog'][number]>('supplementLog'),
     ])
 
   if (phases.length === 0 && sleep.length === 0 && bodyProfile.length === 0 && compositions.length === 0) return null
@@ -120,6 +126,9 @@ export async function fetchSupabaseSnapshot(client: SupabaseClient, today = new 
     today: today.toISOString().slice(0, 10),
     phases,
     focus,
+    goals,
+    supplements,
+    supplementLog,
     targets,
     sleep,
     vitals,

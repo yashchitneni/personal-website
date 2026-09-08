@@ -47,6 +47,87 @@ export interface FocusNote {
 }
 
 /* ------------------------------------------------------------------ */
+/* Goals                                                               */
+/* ------------------------------------------------------------------ */
+
+export type GoalMetric = 'lean_mass' | 'fat_mass' | 'body_fat_pct' | 'weight' | 'vo2max' | 'custom'
+export type GoalStatus = 'active' | 'met' | 'missed' | 'dropped'
+
+/**
+ * A dated, measurable target. Values are in the metric's canonical unit
+ * (kg for masses, % for body fat, ml/kg/min for VO₂max) and are read against
+ * the same source the start value came from (e.g. DEXA lean mass).
+ */
+export interface Goal {
+  id: string
+  metric: GoalMetric
+  label: string
+  startDate: ISODate
+  targetDate: ISODate
+  startValue: number
+  targetValue: number
+  unit: 'kg' | '%' | 'ml/kg/min' | ''
+  /** 'dexa' means only scan values count as progress; 'daily' allows the daily series */
+  measuredBy: 'dexa' | 'daily'
+  status: GoalStatus
+  /** one line of intent or allowance, e.g. "Modest fat gain allowed; lean first." */
+  notes: string | null
+}
+
+/* ------------------------------------------------------------------ */
+/* Supplements                                                         */
+/* ------------------------------------------------------------------ */
+
+export type SupplementCategory = 'performance' | 'cognitive' | 'recovery' | 'general'
+export type SupplementStatus = 'active' | 'planned' | 'paused' | 'stopped'
+export type DoseUnit = 'g' | 'mg' | 'mcg' | 'iu' | 'ml'
+
+export interface Dose {
+  amount: number
+  unit: DoseUnit
+  /** doses per day; the daily total is amount × perDay */
+  perDay: number
+  /** free text, e.g. "with breakfast" */
+  timing: string | null
+}
+
+/** A dated step in a protocol, e.g. a loading week followed by maintenance. */
+export interface SupplementPhase {
+  label: string
+  startDate: ISODate
+  /** null while the phase is open-ended */
+  endDate: ISODate | null
+  dose: Dose
+  notes: string | null
+}
+
+/**
+ * What is being taken and how. A protocol may have no phases yet (a slot
+ * reserved for a stack whose contents are still being decided).
+ */
+export interface SupplementProtocol {
+  id: string
+  name: string
+  category: SupplementCategory
+  status: SupplementStatus
+  phases: SupplementPhase[]
+  /** why this protocol and how it differs from a standard one */
+  rationale: string | null
+  notes: string | null
+}
+
+/** One logged intake, for adherence tracking (chat → row). */
+export interface SupplementLogEntry {
+  id: string
+  date: ISODate
+  time: string | null
+  supplementId: string
+  amount: number
+  unit: DoseUnit
+  source: Extract<MetricSource, 'chat' | 'manual'>
+}
+
+/* ------------------------------------------------------------------ */
 /* Coros                                                               */
 /* ------------------------------------------------------------------ */
 
@@ -340,6 +421,9 @@ export interface HealthSnapshot {
   today: ISODate
   phases: RecompPhase[]
   focus: FocusNote[]
+  goals: Goal[]
+  supplements: SupplementProtocol[]
+  supplementLog: SupplementLogEntry[]
   targets: NutritionTargets
   sleep: SleepNight[]
   vitals: DailyVitals[]
@@ -376,6 +460,9 @@ export interface HealthIngestPayload {
   checkins?: SubjectiveCheckin[]
   phases?: RecompPhase[]
   focus?: FocusNote[]
+  goals?: Goal[]
+  supplements?: SupplementProtocol[]
+  supplementLog?: SupplementLogEntry[]
 }
 
 export interface HealthIngestResult {
