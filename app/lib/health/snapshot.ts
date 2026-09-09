@@ -10,6 +10,9 @@ import { fetchSupabaseSnapshot } from './supabase'
  *  1. HEALTH_DATA_SOURCE=fixtures forces fixtures (useful for previews).
  *  2. If Supabase is configured and the health_* tables have data, use them.
  *  3. Otherwise fall back to deterministic fixtures so the page always renders.
+ *
+ * `HealthSnapshot.source` is `"supabase"` | `"fixtures"`. GET /api/health
+ * also sets `X-Health-Source` to the same value. See ./README.md.
  */
 export async function getHealthSnapshot(): Promise<HealthSnapshot> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL

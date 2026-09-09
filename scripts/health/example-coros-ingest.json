@@ -1,0 +1,90 @@
+{
+  "source": "coros",
+  "sleep": [
+    {
+      "date": "2026-09-08",
+      "score": 84,
+      "durationMin": 452,
+      "deepMin": 86,
+      "lightMin": 248,
+      "remMin": 98,
+      "awakeMin": 20,
+      "bedtime": "2026-09-07T22:41:00",
+      "wakeTime": "2026-09-08T06:13:00",
+      "hrvMs": 62,
+      "avgHr": 51,
+      "lowestHr": 46,
+      "source": "coros"
+    }
+  ],
+  "vitals": [
+    {
+      "date": "2026-09-08",
+      "restingHr": 48,
+      "avgHr": 71,
+      "stressAvg": 28,
+      "stressMax": 64,
+      "recoveryPct": 78,
+      "recoveryStatus": "good",
+      "steps": 10420,
+      "activeCalories": 640,
+      "source": "coros"
+    }
+  ],
+  "load": [
+    {
+      "date": "2026-09-08",
+      "dailyLoad": 82,
+      "shortTerm": 510,
+      "longTerm": 470,
+      "ratio": 1.09,
+      "status": "optimal",
+      "source": "coros"
+    }
+  ],
+  "workouts": [
+    {
+      "id": "coros-example-2026-09-08-run",
+      "externalId": "example-label-1",
+      "date": "2026-09-08",
+      "startTime": "2026-09-08T06:40:00",
+      "sport": "run",
+      "title": "Easy run",
+      "durationSec": 2700,
+      "distanceM": 8500,
+      "avgHr": 142,
+      "maxHr": 161,
+      "trainingLoad": 82,
+      "calories": 540,
+      "elevationGainM": 48,
+      "avgPaceSecPerKm": 318,
+      "notes": null,
+      "laps": null,
+      "source": "coros"
+    }
+  ],
+  "fitness": [
+    {
+      "date": "2026-09-08",
+      "vo2max": 52.9,
+      "lactateThresholdHr": 172,
+      "thresholdPaceSecPerKm": 255,
+      "fitnessIndex": 62,
+      "racePredictions": [
+        { "label": "5K", "distanceKm": 5, "seconds": 1190 },
+        { "label": "10K", "distanceKm": 10, "seconds": 2481 },
+        { "label": "Half", "distanceKm": 21.0975, "seconds": 5580 },
+        { "label": "Marathon", "distanceKm": 42.195, "seconds": 12020 }
+      ],
+      "source": "coros"
+    }
+  ],
+  "bodyProfile": [
+    {
+      "date": "2026-09-08",
+      "heightCm": 177.8,
+      "weightKg": 80.0,
+      "source": "coros"
+    }
+  ]
+}

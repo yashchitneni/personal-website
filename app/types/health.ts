@@ -445,6 +445,8 @@ export interface HealthSnapshot {
  * Body accepted by POST /api/health/ingest. Any subset of series may be sent;
  * rows are upserted on their natural key (see migration). Used by the private
  * Coros sync job, the food-logging chat hook, and manual DEXA entry.
+ * Work Ops contract + builders: scripts/health/coros-to-ingest.md,
+ * app/lib/health/coros-map.ts.
  */
 export interface HealthIngestPayload {
   source: MetricSource

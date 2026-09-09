@@ -7,6 +7,9 @@ export const revalidate = 3600
 export async function GET() {
   const snapshot = await getHealthSnapshot()
   return NextResponse.json(snapshot, {
-    headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' },
+    headers: {
+      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+      'X-Health-Source': snapshot.source,
+    },
   })
 }

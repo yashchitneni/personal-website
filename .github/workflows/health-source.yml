@@ -1,0 +1,31 @@
+# Verify the deployed /health warehouse is live.
+# Calls only GET /api/health (an endpoint we control). No Coros credentials.
+# Set repo variable HEALTH_SITE_URL, then run via workflow_dispatch after seed + Coros backfill.
+name: Verify health source
+
+on:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm GET /api/health is supabase-backed
+        env:
+          HEALTH_SITE_URL: ${{ vars.HEALTH_SITE_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HEALTH_SITE_URL:-}" ]; then
+            echo "Set repository variable HEALTH_SITE_URL to the deployed origin."
+            exit 1
+          fi
+          URL="${HEALTH_SITE_URL%/}/api/health"
+          BODY="$(mktemp)"
+          HEADERS="$(curl -sS -D - -o "$BODY" "$URL")"
+          echo "$HEADERS" | head -n 20
+          SOURCE="$(python3 -c "import json; print(json.load(open('$BODY')).get('source',''))")"
+          echo "source=$SOURCE"
+          if [ "$SOURCE" != "supabase" ]; then
+            echo "expected source=supabase; got '$SOURCE' (fixtures means warehouse is empty or env is missing)"
+            exit 1
+          fi
