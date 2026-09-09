@@ -30,6 +30,11 @@ const nextConfig = {
         destination: '/podcasting/:path*',
         permanent: true,
       },
+      {
+        source: '/maximizing/health',
+        destination: '/health',
+        permanent: true,
+      },
     ];
   },
   async headers() {

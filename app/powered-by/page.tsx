@@ -2,6 +2,9 @@ import { Metadata } from 'next'
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import { createClient } from '@/utils/supabase/server'
 
+// Always rendered on demand: reads Supabase with the request's cookies.
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'My OS | Yash Chitneni',
   description: 'The hardware, software, and systems that power my daily life',

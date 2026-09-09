@@ -11,9 +11,13 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily: {
+        display: ["var(--font-display)", "Georgia", "serif"],
+      },
       gridTemplateColumns: {
         '31': 'repeat(31, minmax(0, 1fr))',
         '7': 'repeat(7, minmax(0, 1fr))',
+        '14': 'repeat(14, minmax(0, 1fr))',
       },
       aspectRatio: {
         'polaroid': '0.8',
