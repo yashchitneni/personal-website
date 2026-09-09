@@ -4,16 +4,12 @@ import type {
   BodyProfile,
   DailyVitals,
   FitnessAssessment,
-  FocusNote,
   FoodDay,
   FoodEntry,
   HealthSnapshot,
   ISODate,
-  LoadStatus,
   Macros,
   ProgressPhoto,
-  RecompPhase,
-  RecoveryStatus,
   SleepNight,
   SubjectiveCheckin,
   TrainingLoadDay,
@@ -21,7 +17,8 @@ import type {
 } from '@/app/types/health'
 import { DEXA_DAY_ZERO } from './data/dexa-2026-09-08-arc'
 import { DEXA_HISTORY } from './data/dexa-history'
-import { GOALS, SUPPLEMENTS } from './data/plan'
+import { BUILD_WEEKS, FOCUS, GOALS, PHASES, SUPPLEMENTS } from './data/plan'
+import { loadStatusFromRatio, recoveryStatusFromPct } from './status'
 
 /**
  * Fixtures for the /health page.
@@ -33,8 +30,6 @@ import { GOALS, SUPPLEMENTS } from './data/plan'
  * today up to today; the arc itself starts on Day 0.
  */
 
-const BUILD_WEEKS = 16
-const CUT_WEEKS = 12
 /** days of Coros history to publish before today */
 const PUBLISHED_HISTORY = 62
 /** extra unpublished days so chronic load has a warm-up */
@@ -105,21 +100,6 @@ const MEALS: Array<{ time: string; options: Array<[string, Macros]> }> = [
   },
 ]
 
-function recoveryStatus(pct: number): RecoveryStatus {
-  if (pct >= 90) return 'full'
-  if (pct >= 70) return 'good'
-  if (pct >= 45) return 'partial'
-  return 'low'
-}
-
-function loadStatus(ratio: number): LoadStatus {
-  if (ratio < 0.8) return 'detraining'
-  if (ratio < 1.0) return 'maintaining'
-  if (ratio <= 1.3) return 'optimal'
-  if (ratio <= 1.5) return 'high'
-  return 'overreaching'
-}
-
 export function buildFixtureSnapshot(today = new Date()): HealthSnapshot {
   const rand = mulberry32(20260908)
   const noise = (amp: number) => (rand() * 2 - 1) * amp
@@ -127,29 +107,8 @@ export function buildFixtureSnapshot(today = new Date()): HealthSnapshot {
   const pick = <T,>(arr: T[]) => arr[Math.floor(rand() * arr.length)]
 
   const dayZero = parseISO(DEXA_DAY_ZERO.date)
-  const buildEnd = addDays(dayZero, BUILD_WEEKS * 7)
   const baselineWeightKg = DEXA_DAY_ZERO.weightKg
-
-  const phases: RecompPhase[] = [
-    {
-      id: 'phase-build-1',
-      kind: 'build',
-      label: 'Build',
-      startDate: iso(dayZero),
-      endDate: null,
-      plannedWeeks: BUILD_WEEKS,
-      goal: '+5 lb DEXA lean by Nov 8. Modest fat gain allowed; lean first. Sleep above 7h.',
-    },
-    {
-      id: 'phase-cut-1',
-      kind: 'cut',
-      label: 'Cut',
-      startDate: iso(buildEnd),
-      endDate: null,
-      plannedWeeks: CUT_WEEKS,
-      goal: 'Bring body fat from 23% toward 15% while holding lean mass within 2 lb.',
-    },
-  ]
+  const phases = PHASES
 
   const sleep: SleepNight[] = []
   const vitals: DailyVitals[] = []
@@ -240,7 +199,7 @@ export function buildFixtureSnapshot(today = new Date()): HealthSnapshot {
       stressAvg: Math.round(clamp(30 + noise(9) + (dow === 1 ? 4 : 0), 8, 70)),
       stressMax: Math.round(clamp(62 + noise(14), 30, 98)),
       recoveryPct,
-      recoveryStatus: recoveryStatus(recoveryPct),
+      recoveryStatus: recoveryStatusFromPct(recoveryPct),
       steps: Math.round(8200 + noise(2400) + (plan?.sport === 'run' ? 6000 : 0)),
       activeCalories: Math.round(520 + dayLoad * 5 + noise(80)),
       source: 'coros',
@@ -324,7 +283,7 @@ export function buildFixtureSnapshot(today = new Date()): HealthSnapshot {
       shortTerm: Math.round(shortTerm),
       longTerm: Math.round(longTerm),
       ratio: round(ratio, 2),
-      status: loadStatus(ratio),
+      status: loadStatusFromRatio(ratio),
       source: 'coros',
     })
   }
@@ -347,14 +306,7 @@ export function buildFixtureSnapshot(today = new Date()): HealthSnapshot {
 
   const compositions: BodyComposition[] = DEXA_HISTORY
 
-  const focus: FocusNote[] = [
-    {
-      weekStart: iso(dayZero),
-      measured: 'Day 0 DEXA: 128.1 lb lean, 40.6 lb fat, 23.1%. Fat −14.5 lb and lean +1.3 lb since the Jun 2025 scan.',
-      noticed: 'The Jun 2025 peak is reversed; body fat is back near the 2023 level with 2.9 lb less lean. Fat sits mostly in the trunk (24.8%).',
-      action: 'Build starts today: 3,000 kcal, 180 g protein, four lifts and two runs a week. Creatine load this week, then 10 g/day. Re-scan on the ARC Prodigy at week 8.',
-    },
-  ]
+  const focus = FOCUS
 
   return {
     generatedAt: today.toISOString(),

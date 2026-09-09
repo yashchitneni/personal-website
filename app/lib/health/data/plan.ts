@@ -1,5 +1,5 @@
 import { addDays, format, parseISO } from 'date-fns'
-import type { Goal, SupplementProtocol } from '@/app/types/health'
+import type { FocusNote, Goal, RecompPhase, SupplementProtocol } from '@/app/types/health'
 import { lbToKg } from '../format'
 import { DEXA_DAY_ZERO } from './dexa-2026-09-08-arc'
 
@@ -11,6 +11,45 @@ import { DEXA_DAY_ZERO } from './dexa-2026-09-08-arc'
 
 const iso = (d: Date) => format(d, 'yyyy-MM-dd')
 const dayZero = parseISO(DEXA_DAY_ZERO.date)
+
+/** Planned length of the current build and the cut that follows. */
+export const BUILD_WEEKS = 16
+export const CUT_WEEKS = 12
+const buildEnd = iso(addDays(dayZero, BUILD_WEEKS * 7))
+
+/**
+ * Authored recomp phases. Seed these via POST /api/health/seed (or ingest)
+ * before the first Coros sync so /health does not flip to an empty warehouse.
+ */
+export const PHASES: RecompPhase[] = [
+  {
+    id: 'phase-build-1',
+    kind: 'build',
+    label: 'Build',
+    startDate: DEXA_DAY_ZERO.date,
+    endDate: null,
+    plannedWeeks: BUILD_WEEKS,
+    goal: '+5 lb DEXA lean by Nov 8. Modest fat gain allowed; lean first. Sleep above 7h.',
+  },
+  {
+    id: 'phase-cut-1',
+    kind: 'cut',
+    label: 'Cut',
+    startDate: buildEnd,
+    endDate: null,
+    plannedWeeks: CUT_WEEKS,
+    goal: 'Bring body fat from 23% toward 15% while holding lean mass within 2 lb.',
+  },
+]
+
+export const FOCUS: FocusNote[] = [
+  {
+    weekStart: DEXA_DAY_ZERO.date,
+    measured: 'Day 0 DEXA: 128.1 lb lean, 40.6 lb fat, 23.1%. Fat −14.5 lb and lean +1.3 lb since the Jun 2025 scan.',
+    noticed: 'The Jun 2025 peak is reversed; body fat is back near the 2023 level with 2.9 lb less lean. Fat sits mostly in the trunk (24.8%).',
+    action: 'Build starts today: 3,000 kcal, 180 g protein, four lifts and two runs a week. Creatine load this week, then 10 g/day. Re-scan on the ARC Prodigy at week 8.',
+  },
+]
 
 /** +5 lb of DEXA lean mass in two months, fat allowed to drift up a little. */
 export const GOAL_LEAN_2M: Goal = {

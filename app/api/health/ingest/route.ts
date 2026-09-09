@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@supabase/supabase-js'
 import type { HealthIngestPayload } from '@/app/types/health'
+import { requireIngestAuth } from '@/app/lib/health/ingest-auth'
 import { HEALTH_TABLES, upsertHealthPayload } from '@/app/lib/health/supabase'
 
 export const dynamic = 'force-dynamic'
@@ -15,19 +15,12 @@ export const dynamic = 'force-dynamic'
  *   POST /api/health/ingest
  *   Authorization: Bearer $HEALTH_INGEST_SECRET
  *   { "source": "coros", "sleep": [...], "vitals": [...], ... }
+ *
+ * Contract: scripts/health/coros-to-ingest.md
  */
 export async function POST(request: Request) {
-  const secret = process.env.HEALTH_INGEST_SECRET
-  const auth = request.headers.get('authorization') ?? ''
-  if (!secret || auth !== `Bearer ${secret}`) {
-    return NextResponse.json({ ok: false, errors: ['unauthorized'] }, { status: 401 })
-  }
-
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !serviceKey) {
-    return NextResponse.json({ ok: false, errors: ['supabase is not configured'] }, { status: 503 })
-  }
+  const auth = requireIngestAuth(request)
+  if (!auth.ok) return auth.response
 
   let payload: HealthIngestPayload
   try {
@@ -43,8 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, errors: [`unknown series: ${unknown.join(', ')}`] }, { status: 400 })
   }
 
-  const client = createClient(url, serviceKey, { auth: { persistSession: false } })
-  const result = await upsertHealthPayload(client, payload)
+  const result = await upsertHealthPayload(auth.client, payload)
   if (result.ok) {
     revalidatePath('/health')
     revalidatePath('/api/health')

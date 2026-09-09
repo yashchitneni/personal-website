@@ -20,7 +20,7 @@ This is a [Next.js](https://nextjs.org) project that serves as a personal websit
 - Responsive design
 - Authentication with Clerk
 - Newsletter subscription
-- Public health / body-recomposition page at `/health` (Coros, DEXA, food log, check-ins; see `app/lib/health`)
+- Public health / body-recomposition page at `/health` (Coros, DEXA, food log, check-ins). Warehouse wiring: `app/lib/health/README.md`. Coros sync (Work Ops → ingest): `scripts/health/coros-to-ingest.md`.
 - Payment integration with Stripe
 
 ## Getting Started

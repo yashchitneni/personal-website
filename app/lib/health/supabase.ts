@@ -13,6 +13,7 @@ import type {
 /**
  * Thin mapping layer between the camelCase TS model and the snake_case
  * `health_*` tables (see supabase/migrations/20260908_health_metrics.sql).
+ * Ingest JSON keys are these HEALTH_TABLES keys (see scripts/health/coros-to-ingest.md).
  * Nested objects (race predictions, regional DEXA, laps) are stored as jsonb
  * verbatim, so only top-level keys are converted.
  */
